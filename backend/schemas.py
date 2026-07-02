@@ -19,5 +19,7 @@ class StoreCreate(BaseModel):
 
 
 class ShelfCreate(BaseModel):
-    store_id: int
-    zone_name: str
+    store_id:int
+    shelf_name:str
+    zone_name:str
+    zone_coordinates:str

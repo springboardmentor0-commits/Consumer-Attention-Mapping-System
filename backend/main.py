@@ -11,7 +11,10 @@ from schemas import (
     StoreCreate,
     ShelfCreate
 )
-from auth import create_access_token
+from auth import (
+create_access_token,
+get_current_user
+)
 
 
 app = FastAPI()
@@ -117,6 +120,7 @@ def login(
 @app.post("/stores")
 def create_store(
     store: StoreCreate,
+    current_user=Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
 
@@ -146,13 +150,16 @@ def get_stores(
 @app.post("/shelves")
 def create_shelf(
     shelf: ShelfCreate,
+    current_user=Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
 
     new_shelf = Shelf(
-        store_id=shelf.store_id,
-        zone_name=shelf.zone_name
-    )
+    store_id=shelf.store_id,
+    shelf_name=shelf.shelf_name,
+    zone_name=shelf.zone_name,
+    zone_coordinates=shelf.zone_coordinates
+)
 
     db.add(new_shelf)
     db.commit()

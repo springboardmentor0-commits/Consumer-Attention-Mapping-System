@@ -30,5 +30,14 @@ class Shelf(Base):
     __tablename__ = "shelves"
 
     id = Column(Integer, primary_key=True, index=True)
-    store_id = Column(Integer, ForeignKey("stores.id"))
+
+    store_id = Column(
+        Integer,
+        ForeignKey("stores.id")
+    )
+
+    shelf_name = Column(String)
+
     zone_name = Column(String)
+
+    zone_coordinates = Column(String)
