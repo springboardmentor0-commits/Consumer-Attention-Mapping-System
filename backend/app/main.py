@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes.auth import router as auth_router
+from app.routes.store import router as store_router
+from app.routes.shelf import router as shelf_router
+
 from app.database import engine
 from app.models.role import Role
 from app.models.user import User
@@ -24,6 +27,8 @@ app.add_middleware(
 
 Base.metadata.create_all(bind=engine)
 app.include_router(auth_router)
+app.include_router(store_router)
+app.include_router(shelf_router)
 
 @app.get("/")
 def root():
