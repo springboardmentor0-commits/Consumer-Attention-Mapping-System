@@ -1,0 +1,159 @@
+.page{
+    padding:40px;
+}
+
+.page-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:30px;
+}
+
+.back-btn{
+    background:#2563eb;
+    color:white;
+    border:none;
+    padding:10px 20px;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.back-btn:hover{
+    background:#1d4ed8;
+}
+
+.form-card{
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto 40px;
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.form-card input{
+    padding:14px;
+    border:1px solid #ddd;
+    border-radius:8px;
+    font-size:15px;
+}
+
+.primary-btn{
+    background:#2563eb;
+    color:white;
+    border:none;
+    padding:14px;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:16px;
+}
+
+.primary-btn:hover{
+    background:#1d4ed8;
+}
+
+.section-title{
+    margin-top:40px;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+    gap:20px;
+}
+
+.store-card{
+    background:white;
+    padding:25px;
+    border-radius:15px;
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+    transition:.3s;
+}
+
+.store-card:hover{
+    transform:translateY(-5px);
+}
+
+.app-title{
+    text-align:center;
+    color:#2563EB;
+    font-size:36px;
+    margin-bottom:8px;
+}
+
+.page-title{
+    text-align:center;
+    color:#334155;
+    margin-bottom:35px;
+    font-size:28px;
+}
+
+.form-card{
+    width:100%;
+    max-width:520px;
+    margin:0 auto 50px;
+    padding:40px;
+    background:#fff;
+    border-radius:18px;
+    box-shadow:0 12px 30px rgba(0,0,0,.08);
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+}
+
+.directory{
+    max-width:900px;
+    margin:0 auto;
+}
+
+.directory-card{
+    background:white;
+    border-radius:16px;
+    margin-bottom:18px;
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+    overflow:hidden;
+}
+
+.directory-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:22px 28px;
+    cursor:pointer;
+}
+
+.directory-header h3{
+    margin:0;
+    color:#2563EB;
+}
+
+.directory-header p{
+    margin-top:8px;
+    color:#64748B;
+}
+
+.directory-header span{
+    font-size:20px;
+    color:#2563EB;
+    font-weight:bold;
+}
+
+.directory-body{
+    padding:20px 28px;
+    background:#f8fbff;
+    border-top:1px solid #e2e8f0;
+}
+
+.directory-body h4{
+    margin-bottom:12px;
+    color:#334155;
+}
+
+.directory-body p{
+    margin:8px 0;
+    color:#475569;
+}
