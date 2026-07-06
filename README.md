@@ -18,17 +18,17 @@ Interactive dashboards and analytics
 PDF and Excel report generation
 
 # Workflow
-Customer Enters Store
-        ↓
-CCTV Camera Captures Video
-        ↓
-Customer Detection & Tracking
-        ↓
-Attention & Product Interaction Analysis
-        ↓
-Behavior Analysis & Heatmap Generation
-        ↓
-Analytics Dashboard & AI Recommendations
+Customer Enters Store ->
+        
+CCTV Camera Captures Video ->
+        
+Customer Detection & Tracking ->
+        
+Attention & Product Interaction Analysis ->
+        
+Behavior Analysis & Heatmap Generation ->
+        
+Analytics Dashboard & AI Recommendations ->
 
 # Tech Stack
 
