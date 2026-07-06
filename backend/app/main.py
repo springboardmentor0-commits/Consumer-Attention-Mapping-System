@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.routes.auth import router as auth_router
 from app.routes.store import router as store_router
 from app.routes.shelf import router as shelf_router
+from app.database import SessionLocal
+from app.seed import seed_roles
 
 from app.database import engine
 from app.models.role import Role
@@ -26,6 +28,9 @@ app.add_middleware(
 )
 
 Base.metadata.create_all(bind=engine)
+db = SessionLocal()
+seed_roles(db)
+db.close()
 app.include_router(auth_router)
 app.include_router(store_router)
 app.include_router(shelf_router)

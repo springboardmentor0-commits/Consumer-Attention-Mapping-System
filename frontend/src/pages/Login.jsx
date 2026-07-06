@@ -4,34 +4,48 @@ import { useNavigate } from "react-router-dom";
 import "../styles/login.css";
 
 function Login() {
+
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+
     const navigate = useNavigate();
+
     const handleLogin = async () => {
 
-    try {
+        try {
 
-        const response = await api.post("/login", {
-            email: email,
-            password: password
-        });
+            const response = await api.post("/login", {
+                email: email,
+                password: password
+            });
 
-        localStorage.setItem(
-    "access_token",
-    response.data.access_token
-    );
+            // Save JWT
+            localStorage.setItem(
+                "access_token",
+                response.data.access_token
+            );
 
-    console.log("Token Saved!");
-    navigate("/dashboard");
+            // Save logged-in user details
+            localStorage.setItem(
+                "user",
+                JSON.stringify(response.data.user)
+            );
 
-    } catch (error) {
+            console.log("Login Successful!");
 
-        console.log(error);
+            navigate("/dashboard");
 
-    }
+        } catch (error) {
 
-   };
+            console.log(error);
+            alert("Invalid email or password.");
+
+        }
+
+    };
+
     return (
+
         <div className="login-container">
 
             <div className="login-card">
@@ -43,10 +57,10 @@ function Login() {
                 <label>Email</label>
 
                 <input
-                     type="email"
-                     placeholder="Enter your email"
-                     value={email}
-                     onChange={(e) => setEmail(e.target.value)}
+                    type="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                 />
 
                 <label>Password</label>
@@ -63,12 +77,19 @@ function Login() {
                 </button>
 
                 <div className="register-link">
-                    Don't have an account? Register
+                    Don't have an account?{" "}
+                    <span
+                        className="register-text"
+                        onClick={() => navigate("/register")}
+                    >
+                        Register
+                    </span>
                 </div>
 
             </div>
 
         </div>
+
     );
 }
 
