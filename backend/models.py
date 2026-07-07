@@ -22,3 +22,32 @@ class User(Base):
     role_id = Column(Integer, ForeignKey("roles.id"), nullable=False)
 
     role = relationship("Role", back_populates="users")
+
+class Store(Base):
+    __tablename__ = "stores"
+
+    id = Column(Integer, primary_key=True, index=True)
+    store_name = Column(String(255), nullable=False)
+    location = Column(String(255), nullable=False)
+
+    shelves = relationship(
+        "Shelf",
+        back_populates="store"
+    )
+
+
+class Shelf(Base):
+    __tablename__ = "shelves"
+
+    id = Column(Integer, primary_key=True, index=True)
+    store_id = Column(
+        Integer,
+        ForeignKey("stores.id"),
+        nullable=False
+    )
+    zone_name = Column(String(255), nullable=False)
+
+    store = relationship(
+        "Store",
+        back_populates="shelves"
+    )

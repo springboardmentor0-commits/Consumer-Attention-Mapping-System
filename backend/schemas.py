@@ -10,3 +10,12 @@ class UserRegister(BaseModel):
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+
+class StoreCreate(BaseModel):
+    store_name: str
+    location: str
+
+
+class ShelfCreate(BaseModel):
+    store_id: int
+    zone_name: str

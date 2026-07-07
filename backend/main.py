@@ -4,8 +4,8 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from database import engine, get_db
-from models import User, Role
-from schemas import UserRegister, UserLogin
+from models import User, Role, Store, Shelf
+from schemas import UserRegister, UserLogin, StoreCreate, ShelfCreate
 from auth import hash_password, verify_password, create_access_token
 
 app = FastAPI()
@@ -113,3 +113,86 @@ def login_user(
         "token_type": "bearer",
         "role": user.role.role_name
     }
+@app.post("/stores")
+def create_store(
+    store_data: StoreCreate,
+    db: Session = Depends(get_db)
+):
+    new_store = Store(
+        store_name=store_data.store_name,
+        location=store_data.location
+    )
+
+    db.add(new_store)
+    db.commit()
+    db.refresh(new_store)
+
+    return {
+        "message": "Store created successfully",
+        "store": {
+            "id": new_store.id,
+            "store_name": new_store.store_name,
+            "location": new_store.location
+        }
+    }
+
+@app.get("/stores")
+def get_stores(
+    db: Session = Depends(get_db)
+):
+    stores = db.query(Store).all()
+
+    return [
+        {
+            "id": store.id,
+            "store_name": store.store_name,
+            "location": store.location
+        }
+        for store in stores
+    ]
+@app.post("/shelves")
+def create_shelf(
+    shelf_data: ShelfCreate,
+    db: Session = Depends(get_db)
+):
+    store = db.query(Store).filter(
+        Store.id == shelf_data.store_id
+    ).first()
+
+    if not store:
+        raise HTTPException(
+            status_code=404,
+            detail="Store not found"
+        )
+
+    new_shelf = Shelf(
+        store_id=shelf_data.store_id,
+        zone_name=shelf_data.zone_name
+    )
+
+    db.add(new_shelf)
+    db.commit()
+    db.refresh(new_shelf)
+
+    return {
+        "message": "Shelf created successfully",
+        "shelf": {
+            "id": new_shelf.id,
+            "store_id": new_shelf.store_id,
+            "zone_name": new_shelf.zone_name
+        }
+    }
+@app.get("/shelves")
+def get_shelves(
+    db: Session = Depends(get_db)
+):
+    shelves = db.query(Shelf).all()
+
+    return [
+        {
+            "id": shelf.id,
+            "store_id": shelf.store_id,
+            "zone_name": shelf.zone_name
+        }
+        for shelf in shelves
+    ]
