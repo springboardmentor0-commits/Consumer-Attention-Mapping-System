@@ -1,15 +1,22 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.shelf import Shelf
 from app.schemas.shelf import ShelfCreate
+from app.auth.dependencies import require_role, get_current_user
 
 router = APIRouter()
 
 
 @router.post("/shelves")
-def create_shelf(shelf: ShelfCreate, db: Session = Depends(get_db)):
+def create_shelf(
+    shelf: ShelfCreate,
+    db: Session = Depends(get_db),
+    current_user=Depends(
+        require_role(["Admin", "Store Manager"])
+    )
+):
 
     new_shelf = Shelf(
         zone_name=shelf.zone_name,
@@ -27,6 +34,36 @@ def create_shelf(shelf: ShelfCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/shelves")
-def get_shelves(db: Session = Depends(get_db)):
+def get_shelves(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
 
     return db.query(Shelf).all()
+
+
+@router.delete("/shelves/{shelf_id}")
+def delete_shelf(
+    shelf_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(
+        require_role(["Admin", "Store Manager"])
+    )
+):
+
+    shelf = db.query(Shelf).filter(
+        Shelf.id == shelf_id
+    ).first()
+
+    if not shelf:
+        raise HTTPException(
+            status_code=404,
+            detail="Shelf not found"
+        )
+
+    db.delete(shelf)
+    db.commit()
+
+    return {
+        "message": "Shelf deleted successfully!"
+    }

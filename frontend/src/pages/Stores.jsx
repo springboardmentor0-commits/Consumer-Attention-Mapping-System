@@ -7,6 +7,14 @@ function Stores() {
 
     const navigate = useNavigate();
 
+    // Logged-in user
+    const user = JSON.parse(localStorage.getItem("user"));
+    const role = user?.role;
+
+    const canManage =
+        role === "Admin" ||
+        role === "Store Manager";
+
     const [storeName, setStoreName] = useState("");
     const [location, setLocation] = useState("");
 
@@ -68,6 +76,29 @@ function Stores() {
 
     };
 
+    const deleteStore = async (storeId) => {
+
+        const confirmDelete = window.confirm(
+            "Are you sure you want to delete this store?"
+        );
+
+        if (!confirmDelete) return;
+
+        try {
+
+            await api.delete(`/stores/${storeId}`);
+
+            getData();
+
+        } catch (error) {
+
+            console.log(error);
+            alert("Unable to delete store.");
+
+        }
+
+    };
+
     return (
 
         <div className="page">
@@ -91,35 +122,41 @@ function Stores() {
                 Store Management
             </h2>
 
-            <div className="form-card">
+            {canManage && (
 
-                <h2>Add New Store</h2>
+                <div className="form-card">
 
-                <input
-                    type="text"
-                    placeholder="Store Name"
-                    value={storeName}
-                    onChange={(e) => setStoreName(e.target.value)}
-                />
+                    <h2>Add New Store</h2>
 
-                <input
-                    type="text"
-                    placeholder="Location"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                />
+                    <input
+                        type="text"
+                        placeholder="Store Name"
+                        value={storeName}
+                        onChange={(e) => setStoreName(e.target.value)}
+                    />
 
-                <button
-                    className="primary-btn"
-                    onClick={addStore}
-                >
-                    Add Store
-                </button>
+                    <input
+                        type="text"
+                        placeholder="Location"
+                        value={location}
+                        onChange={(e) => setLocation(e.target.value)}
+                    />
 
-            </div>
+                    <button
+                        className="primary-btn"
+                        onClick={addStore}
+                    >
+                        Add Store
+                    </button>
+
+                </div>
+
+            )}
 
             <h2 className="section-title">
-                Store Directory
+                {canManage
+                    ? "Store Directory"
+                    : "Available Stores"}
             </h2>
 
             <div className="directory">
@@ -135,7 +172,9 @@ function Stores() {
                             className="directory-header"
                             onClick={() =>
                                 setOpenStore(
-                                    openStore === store.id ? null : store.id
+                                    openStore === store.id
+                                        ? null
+                                        : store.id
                                 )
                             }
                         >
@@ -146,11 +185,27 @@ function Stores() {
 
                                 <p>📍 {store.location}</p>
 
+                                {canManage && (
+
+                                    <button
+                                        className="delete-btn"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            deleteStore(store.id);
+                                        }}
+                                    >
+                                        🗑 Delete
+                                    </button>
+
+                                )}
+
                             </div>
 
                             <span>
 
-                                {openStore === store.id ? "▲" : "▼"}
+                                {openStore === store.id
+                                    ? "▲"
+                                    : "▼"}
 
                             </span>
 
@@ -164,20 +219,20 @@ function Stores() {
 
                                 {shelves
                                     .filter(
-                                        shelf => shelf.store_id === store.id
+                                        shelf =>
+                                            shelf.store_id === store.id
                                     )
                                     .map((shelf) => (
 
                                         <p key={shelf.id}>
-
                                             • {shelf.zone_name}
-
                                         </p>
 
                                     ))}
 
                                 {shelves.filter(
-                                    shelf => shelf.store_id === store.id
+                                    shelf =>
+                                        shelf.store_id === store.id
                                 ).length === 0 && (
 
                                     <p>No shelves added yet.</p>

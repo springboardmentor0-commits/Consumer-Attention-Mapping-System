@@ -12,9 +12,3 @@ class Store(Base):
 
     location = Column(String, nullable=False)
 
-from pydantic import BaseModel
-
-
-class StoreCreate(BaseModel):
-    store_name: str
-    location: str

@@ -7,6 +7,14 @@ function Shelves() {
 
     const navigate = useNavigate();
 
+    // Logged-in user
+    const user = JSON.parse(localStorage.getItem("user"));
+    const role = user?.role;
+
+    const canManage =
+        role === "Admin" ||
+        role === "Store Manager";
+
     const [zoneName, setZoneName] = useState("");
     const [storeId, setStoreId] = useState("");
     const [shelves, setShelves] = useState([]);
@@ -26,22 +34,61 @@ function Shelves() {
 
     const getShelves = async () => {
 
-        const response = await api.get("/shelves");
-        setShelves(response.data);
+        try {
+
+            const response = await api.get("/shelves");
+            setShelves(response.data);
+
+        } catch (error) {
+
+            console.log(error);
+
+        }
 
     };
 
     const addShelf = async () => {
 
-        await api.post("/shelves", {
-            zone_name: zoneName,
-            store_id: Number(storeId)
-        });
+        try {
 
-        setZoneName("");
-        setStoreId("");
+            await api.post("/shelves", {
+                zone_name: zoneName,
+                store_id: Number(storeId)
+            });
 
-        getShelves();
+            setZoneName("");
+            setStoreId("");
+
+            getShelves();
+
+        } catch (error) {
+
+            console.log(error);
+
+        }
+
+    };
+
+    const deleteShelf = async (shelfId) => {
+
+        const confirmDelete = window.confirm(
+            "Are you sure you want to delete this shelf?"
+        );
+
+        if (!confirmDelete) return;
+
+        try {
+
+            await api.delete(`/shelves/${shelfId}`);
+
+            getShelves();
+
+        } catch (error) {
+
+            console.log(error);
+            alert("Unable to delete shelf.");
+
+        }
 
     };
 
@@ -62,44 +109,68 @@ function Shelves() {
 
             </div>
 
-            <div className="form-card">
+            {canManage && (
 
-                <h2>Add Shelf</h2>
+                <div className="form-card">
 
-                <input
-                    type="text"
-                    placeholder="Zone Name"
-                    value={zoneName}
-                    onChange={(e)=>setZoneName(e.target.value)}
-                />
+                    <h2>Add Shelf</h2>
 
-                <input
-                    type="number"
-                    placeholder="Store ID"
-                    value={storeId}
-                    onChange={(e)=>setStoreId(e.target.value)}
-                />
+                    <input
+                        type="text"
+                        placeholder="Zone Name"
+                        value={zoneName}
+                        onChange={(e) => setZoneName(e.target.value)}
+                    />
 
-                <button
-                    className="primary-btn"
-                    onClick={addShelf}
-                >
-                    Add Shelf
-                </button>
+                    <input
+                        type="number"
+                        placeholder="Store ID"
+                        value={storeId}
+                        onChange={(e) => setStoreId(e.target.value)}
+                    />
 
-            </div>
+                    <button
+                        className="primary-btn"
+                        onClick={addShelf}
+                    >
+                        Add Shelf
+                    </button>
 
-            <h2 className="section-title">Available Shelves</h2>
+                </div>
+
+            )}
+
+            <h2 className="section-title">
+
+                {canManage
+                    ? "Shelf Directory"
+                    : "Available Shelves"}
+
+            </h2>
 
             <div className="grid">
 
-                {shelves.map((shelf)=>(
+                {shelves.map((shelf) => (
 
-                    <div className="store-card" key={shelf.id}>
+                    <div
+                        className="store-card"
+                        key={shelf.id}
+                    >
 
                         <h3>📦 {shelf.zone_name}</h3>
 
                         <p>🏪 Store ID: {shelf.store_id}</p>
+
+                        {canManage && (
+
+                            <button
+                                className="delete-btn"
+                                onClick={() => deleteShelf(shelf.id)}
+                            >
+                                🗑 Delete
+                            </button>
+
+                        )}
 
                     </div>
 

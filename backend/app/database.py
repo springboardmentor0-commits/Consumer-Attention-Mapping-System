@@ -6,8 +6,6 @@ import os
 
 load_dotenv()
 
-from urllib.parse import quote_plus
-
 password = quote_plus(os.getenv("DATABASE_PASSWORD"))
 
 DATABASE_URL = (

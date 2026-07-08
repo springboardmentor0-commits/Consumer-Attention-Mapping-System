@@ -6,6 +6,9 @@ function Dashboard() {
 
     const navigate = useNavigate();
 
+    const user = JSON.parse(localStorage.getItem("user"));
+    const role = user?.role;
+
     useEffect(() => {
 
         const token = localStorage.getItem("access_token");
@@ -19,6 +22,7 @@ function Dashboard() {
     const handleLogout = () => {
 
         localStorage.removeItem("access_token");
+        localStorage.removeItem("user");
 
         navigate("/");
 
@@ -43,7 +47,11 @@ function Dashboard() {
 
             <div className="welcome-card">
 
-                <h2>Welcome 👋</h2>
+                <h2>Welcome, {user?.email} 👋</h2>
+
+                <p><strong>Role:</strong> {role}</p>
+
+                <br />
 
                 <p>
                     Manage your retail stores and shelf layouts from one place.
@@ -61,7 +69,9 @@ function Dashboard() {
                     <h2>🏪 Stores</h2>
 
                     <p>
-                        Add and manage store locations.
+                        {(role === "Admin" || role === "Store Manager")
+                            ? "Add and manage store locations."
+                            : "View store locations."}
                     </p>
 
                 </div>
@@ -74,7 +84,9 @@ function Dashboard() {
                     <h2>📦 Shelves</h2>
 
                     <p>
-                        Manage shelf zones for stores.
+                        {(role === "Admin" || role === "Store Manager")
+                            ? "Manage shelf zones for stores."
+                            : "View shelf information."}
                     </p>
 
                 </div>
