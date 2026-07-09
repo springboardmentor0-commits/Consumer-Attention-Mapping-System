@@ -4,16 +4,22 @@ import logging
 from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException, status
 from pydantic import BaseModel
 from typing import Dict, Optional, Any, List
+from sqlmodel import Session
 
 from app.core.deps import get_current_user
+from app.core.db import get_session
+from app.models.schemas import Camera
 from app.services.video_capture import stream_frames
+from app.services.video_ingest import open_source, read_frames
 
 router = APIRouter(prefix="/video", tags=["video"])
 logger = logging.getLogger(__name__)
 
 # In-memory store for verification jobs
-# In production, this would be backed by Redis or a database
 jobs_db: Dict[str, Dict[str, Any]] = {}
+
+# Active ingestion threads control mapping
+active_ingestions: Dict[uuid.UUID, bool] = {}
 
 class VideoVerifyRequest(BaseModel):
     source: str  # Local file path, RTSP URL, or webcam index
@@ -27,6 +33,52 @@ class VerifyJobStatusResponse(BaseModel):
     fps: float
     resolution: Optional[str] = None
     error: Optional[str] = None
+
+class CameraIngestRequest(BaseModel):
+    camera_id: uuid.UUID
+
+
+def ingest_worker(camera_id: uuid.UUID, stream_url: str):
+    """
+    Background worker that runs OpenCV frame ingestion.
+    Gracefully handles local file endings by looping them, and allows stopping via active_ingestions.
+    """
+    logger.info(f"Ingestion worker started for camera {camera_id} (source: {stream_url})")
+    active_ingestions[camera_id] = True
+    
+    frame_count = 0
+    while active_ingestions.get(camera_id):
+        try:
+            cap = open_source(stream_url)
+            for frame, timestamp, count in read_frames(cap):
+                if not active_ingestions.get(camera_id):
+                    break
+                frame_count += 1
+                
+                # Log frame count + timestamp to console/logs every 30 frames
+                if frame_count % 30 == 0:
+                    logger.info(
+                        f"[Ingest Log] Camera: {camera_id} | Frame Count: {frame_count} | Timestamp: {timestamp}"
+                    )
+                
+            cap.release()
+            
+            # Delay before loop restart
+            import os
+            if active_ingestions.get(camera_id):
+                if isinstance(stream_url, str) and os.path.exists(stream_url):
+                    # Throttling to prevent high CPU utilization during file loop reopen
+                    time.sleep(0.01)
+                else:
+                    time.sleep(2.0)
+                    
+        except Exception as e:
+            logger.error(f"Error in camera {camera_id} ingestion worker: {e}")
+            if active_ingestions.get(camera_id):
+                time.sleep(2.0)
+                
+    logger.info(f"Ingestion worker stopped for camera {camera_id}")
+
 
 def run_video_verification(job_id: str, source: str):
     """
@@ -118,3 +170,57 @@ def get_verification_status(
             detail="Verification job not found"
         )
     return VerifyJobStatusResponse(**jobs_db[job_id])
+
+
+# ─── INGESTION CONTROL ENDPOINTS ──────────────────────────────────────────────
+
+@router.post("/start", status_code=status.HTTP_202_ACCEPTED)
+def start_camera_ingestion(
+    payload: CameraIngestRequest,
+    background_tasks: BackgroundTasks,
+    session: Session = Depends(get_session),
+    current_user = Depends(get_current_user)
+):
+    # 1. Look up camera to get its stream_url
+    camera = session.get(Camera, payload.camera_id)
+    if not camera:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Camera with ID {payload.camera_id} not found."
+        )
+        
+    # Check if already running
+    if active_ingestions.get(payload.camera_id):
+        return {
+            "status": "already_running",
+            "camera_id": payload.camera_id,
+            "stream_url": camera.stream_url
+        }
+        
+    # 2. Dispatch ingestion background worker
+    background_tasks.add_task(ingest_worker, payload.camera_id, camera.stream_url)
+    
+    return {
+        "status": "ingestion_started",
+        "camera_id": payload.camera_id,
+        "stream_url": camera.stream_url
+    }
+
+@router.post("/stop", status_code=status.HTTP_200_OK)
+def stop_camera_ingestion(
+    payload: CameraIngestRequest,
+    current_user = Depends(get_current_user)
+):
+    if not active_ingestions.get(payload.camera_id):
+        return {
+            "status": "not_running",
+            "camera_id": payload.camera_id
+        }
+        
+    # Toggle flag to stop background task
+    active_ingestions[payload.camera_id] = False
+    
+    return {
+        "status": "ingestion_stopping",
+        "camera_id": payload.camera_id
+    }
