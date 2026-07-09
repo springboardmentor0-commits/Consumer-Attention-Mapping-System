@@ -3,10 +3,16 @@ uvicorn
 sqlmodel
 python-jose[cryptography]
 passlib[bcrypt]
+bcrypt<4
 python-dotenv
+
 pydantic-settings
 opencv-python
 psycopg2-binary
 alembic
+email-validator
+python-multipart
+
+
 
 

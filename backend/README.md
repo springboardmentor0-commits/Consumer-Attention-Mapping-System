@@ -67,3 +67,28 @@ The API documentation will be available at:
 * Redoc: [http://localhost:8000/redoc](http://localhost:8000/redoc)
 
 You can check the health status by visiting [http://localhost:8000/health](http://localhost:8000/health).
+
+## Database Migrations
+
+This project uses **Alembic** to manage database schema updates. To initialize the database structure and run all migrations:
+
+```bash
+alembic upgrade head
+```
+
+*(Note: Ensure your PostgreSQL instance is running and reachable via the `DATABASE_URL` specified in `.env`).*
+
+## OpenCV Stream Verification
+
+To run the stream verification CLI utility that opens a video file (or stream) and verifies performance:
+
+```bash
+python scripts/verify_stream.py --source ../data/sample_retail.mp4 --headless
+```
+
+Options:
+* `--source`: webcam index (e.g. `0`), RTSP URL, or local video path.
+* `--headless`: run without rendering cv2 output windows (recommended for servers).
+* `--resize`: configure frame size, defaults to `640x480`.
+* `--log-interval`: metadata logging frequency (default: every 30 frames).
+

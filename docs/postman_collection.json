@@ -1,0 +1,397 @@
+{
+	"info": {
+		"_postman_id": "c1f77d33-3bf8-466d-9781-dbbeeb4c9c1b",
+		"name": "Consumer Attention Mapping System API",
+		"description": "Collection of endpoints to test Authentication, Store Management, and Shelf/Zone Management API.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register User (StoreManager)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"manager@example.com\",\n    \"password\": \"securepassword123\",\n    \"role_name\": \"StoreManager\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register User (Analyst)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"analyst@example.com\",\n    \"password\": \"securepassword123\",\n    \"role_name\": \"Analyst\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login (Success)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "username",
+									"value": "manager@example.com",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "securepassword123",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login (Wrong Password)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "username",
+									"value": "manager@example.com",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "wrongpassword",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Stores",
+			"item": [
+				{
+					"name": "Create Store (Unauthenticated) - Expect 401",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"SuperStore Austin\",\n    \"location\": \"Austin, TX\",\n    \"zones\": [\n        {\"name\": \"Aisle 1\", \"coordinates\": [[1.2, 3.4], [5.6, 7.8]]}\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/stores",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"stores"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Store (Unauthorized Analyst) - Expect 403",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_analyst}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Analyst Store Attempt\",\n    \"location\": \"Austin, TX\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/stores",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"stores"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Store (StoreManager) - Expect 201",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_manager}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"SuperStore Austin\",\n    \"location\": \"Austin, TX\",\n    \"zones\": [\n        {\"name\": \"Aisle 1\", \"coordinates\": [[1.2, 3.4], [5.6, 7.8]]},\n        {\"name\": \"Aisle 2\", \"coordinates\": [[9.0, 10.1], [11.2, 13.4]]}\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/stores",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"stores"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Stores (Authenticated)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_manager}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/stores",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"stores"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Store by ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_manager}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/stores/{{store_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"stores",
+								"{{store_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Shelves",
+			"item": [
+				{
+					"name": "Create Shelf (StoreManager) - Expect 201",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_manager}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"shelf_name\": \"Aisle 3\",\n    \"zone_coordinates\": [[15.0, 16.0], [17.0, 18.0]]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/stores/{{store_id}}/shelves",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"stores",
+								"{{store_id}}",
+								"shelves"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Shelves for Store",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token_manager}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/stores/{{store_id}}/shelves",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"stores",
+								"{{store_id}}",
+								"shelves"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://127.0.0.1:8001/api",
+			"type": "string"
+		},
+		{
+			"key": "token_manager",
+			"value": "PASTE_STORE_MANAGER_OR_ADMIN_JWT_HERE",
+			"type": "string"
+		},
+		{
+			"key": "token_analyst",
+			"value": "PASTE_ANALYST_JWT_HERE",
+			"type": "string"
+		},
+		{
+			"key": "store_id",
+			"value": "PASTE_CREATED_STORE_UUID_HERE",
+			"type": "string"
+		}
+	]
+}
