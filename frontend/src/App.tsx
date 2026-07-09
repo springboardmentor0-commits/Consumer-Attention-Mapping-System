@@ -1,25 +1,22 @@
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import { ThemeProvider } from "@/components/theme-provider"
-import { ModeToggle } from "@/components/mode-toggle"
+import { AuthProvider } from "@/context/auth-context"
+import { LoginPage } from "@/pages/login"
+import { DashboardPage } from "@/pages/dashboard"
 
 function App() {
   return (
     <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-      <div className="min-h-screen w-full flex flex-col items-center justify-center bg-background text-foreground transition-colors duration-200">
-        <div className="max-w-md w-full text-center space-y-6 p-6 border rounded-xl shadow-lg bg-card">
-          <h1 className="text-3xl font-bold tracking-tight">
-            Consumer Attention System
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Frontend stack successfully configured with Vite, React, TypeScript, Tailwind CSS, and shadcn/ui.
-          </p>
-          <div className="flex items-center justify-center gap-2">
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Toggle Theme
-            </span>
-            <ModeToggle />
-          </div>
-        </div>
-      </div>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            {/* Redirect any other path to /login */}
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
     </ThemeProvider>
   )
 }
