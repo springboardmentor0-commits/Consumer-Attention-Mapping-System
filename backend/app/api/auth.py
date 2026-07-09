@@ -12,7 +12,7 @@ from app.core.security import hash_password, verify_password, create_access_toke
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 # Predefined allowed role names
-RoleName = Literal["SuperAdmin", "StoreManager", "RetailAnalyst", "MarketingManager"]
+RoleName = Literal["Store Manager", "Retail Analyst", "Marketing Manager", "Admin"]
 
 class UserRegisterRequest(BaseModel):
     email: EmailStr
@@ -87,7 +87,7 @@ def login_for_access_token(
     
     # 3. Create JWT token
     access_token = create_access_token(
-        data={"sub": user.email, "role": role_name}
+        data={"sub": user.email, "user_id": str(user.id), "role": role_name}
     )
     
     return TokenResponse(
