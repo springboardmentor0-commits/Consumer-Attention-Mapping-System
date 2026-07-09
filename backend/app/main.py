@@ -4,7 +4,7 @@ from sqlmodel import Session, select
 from app.core.config import settings
 from app.core.db import engine
 from app.models.schemas import Role
-from app.api import auth, stores, shelves
+from app.api import auth, stores, shelves, video
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -27,6 +27,8 @@ app = FastAPI(
 app.include_router(auth.router, prefix="/api")
 app.include_router(stores.router, prefix="/api")
 app.include_router(shelves.router, prefix="/api")
+app.include_router(video.router, prefix="/api")
+
 
 
 @app.get("/health", status_code=200)

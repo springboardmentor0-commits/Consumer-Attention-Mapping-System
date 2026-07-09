@@ -59,6 +59,12 @@ def stream_frames(
             ret, frame = cap.read()
             
             if not ret:
+                import os
+                # If source is a local file, stop streaming when it ends
+                if isinstance(source, str) and os.path.exists(source):
+                    logger.info("Video file source ended cleanly.")
+                    break
+                
                 logger.warning("Frame read returned False. Stream dropped or video ended. Reconnecting...")
                 cap.release()
                 try:

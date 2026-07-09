@@ -2,6 +2,7 @@
 import argparse
 import sys
 import os
+import time
 
 # Append the backend directory to sys.path to locate the 'app' module
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -29,6 +30,11 @@ def main():
         default=480,
         help="Target resize height (default: 480)"
     )
+    parser.add_argument(
+        "--headless",
+        action="store_true",
+        help="Run without displaying GUI windows (useful for headless testing)"
+    )
     
     args = parser.parse_args()
     
@@ -39,8 +45,13 @@ def main():
         
     print("====================================================")
     print(f"Starting Stream Verification for source: {source}")
-    print("Press 'q' in the window to safely stop the process.")
+    if not args.headless:
+        print("Press 'q' in the window to safely stop the process.")
     print("====================================================")
+    
+    total_frames = 0
+    start_time = time.time()
+    last_resolution = (0, 0)
     
     try:
         for frame, count, timestamp in stream_frames(
@@ -48,19 +59,36 @@ def main():
             target_size=(args.width, args.height),
             log_every_n=30
         ):
-            # Display the video frames
-            cv2.imshow("Stream Verification - Press 'q' to Quit", frame)
+            total_frames = count
+            h, w = frame.shape[:2]
+            last_resolution = (w, h)
             
-            # Stop if the user presses 'q'
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                print("\nUser quit verification.")
-                break
+            if not args.headless:
+                # Display the video frames in GUI mode
+                cv2.imshow("Stream Verification - Press 'q' to Quit", frame)
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    print("\nUser quit verification.")
+                    break
+            else:
+                # Small artificial delay to mimic FPS if processing local files too fast
+                # (Optional, but helps simulate realistic processing speeds)
+                pass
                 
     except Exception as e:
         print(f"\nError running stream verification: {e}", file=sys.stderr)
     finally:
+        end_time = time.time()
         cv2.destroyAllWindows()
-        print("Stream verification finished.")
+        
+        duration = end_time - start_time
+        avg_fps = total_frames / duration if duration > 0 else 0
+        
+        print("\n================ Verification Summary ================")
+        print(f"Total Frames Processed: {total_frames}")
+        print(f"Total Time Taken:       {duration:.2f} seconds")
+        print(f"Average Processing FPS: {avg_fps:.2f}")
+        print(f"Frame Resolution:       {last_resolution[0]}x{last_resolution[1]}")
+        print("======================================================")
 
 if __name__ == "__main__":
     main()
