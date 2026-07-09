@@ -1,6 +1,9 @@
+"use client"
+
 import React, { useState } from "react"
-import { useNavigate, Link } from "react-router-dom"
-import { useAuth } from "@/context/auth-context"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { useAuth } from "@/context/AuthContext"
 import {
   Card,
   CardHeader,
@@ -12,85 +15,81 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle } from "lucide-react"
 
-export function LoginPage() {
+export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const { login } = useAuth()
-  const navigate = useNavigate()
+  const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
     setLoading(true)
 
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8001"
+    const apiBaseUrl =
+      process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8001"
 
     try {
-      // OAuth2PasswordRequestForm expects application/x-www-form-urlencoded
-      const bodyParams = new URLSearchParams()
-      bodyParams.append("username", email)
-      bodyParams.append("password", password)
+      const formData = new URLSearchParams()
+      formData.append("username", email)
+      formData.append("password", password)
 
       const response = await fetch(`${apiBaseUrl}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },
-        body: bodyParams.toString(),
+        body: formData.toString(),
       })
 
       if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error("Invalid email or password.")
-        } else {
-          const errData = await response.json().catch(() => ({}))
-          throw new Error(errData.detail || "Authentication failed.")
-        }
+        const errData = await response.json().catch(() => ({}))
+        throw new Error(errData.detail || "Authentication failed.")
       }
 
       const data = await response.json()
-      login(data.access_token)
-      navigate("/dashboard")
+      
+      // Decode JWT to extract role and email details
+      const payloadBase64 = data.access_token.split(".")[1]
+      const payloadDecoded = JSON.parse(atob(payloadBase64))
+      const userRole = payloadDecoded.role || "User"
+      const userEmail = payloadDecoded.sub || email
+
+      login(data.access_token, userEmail, userRole)
     } catch (err: any) {
-      setError(err.message || "An unexpected error occurred.")
+      setError(err.message || "Something went wrong. Please try again.")
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background p-4">
+    <div className="flex-1 flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-lg border">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">
-            Sign In
-          </CardTitle>
-          <CardDescription className="text-center">
+        <CardHeader className="space-y-1 text-center">
+          <CardTitle className="text-2xl font-bold">Sign In</CardTitle>
+          <CardDescription>
             Enter your credentials to access your dashboard
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             {error && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Error</AlertTitle>
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
+              <div className="p-3 text-sm rounded bg-destructive/10 text-destructive border border-destructive/20 font-medium">
+                {error}
+              </div>
             )}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="m@example.com"
+                placeholder="name@company.com"
                 value={email}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
@@ -99,8 +98,9 @@ export function LoginPage() {
               <Input
                 id="password"
                 type="password"
+                placeholder="••••••••"
                 value={password}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+                onChange={(e) => setPassword(e.target.value)}
                 required
               />
             </div>
@@ -112,7 +112,7 @@ export function LoginPage() {
             <p className="text-sm text-muted-foreground text-center">
               Don't have an account?{" "}
               <Link
-                to="/register"
+                href="/register"
                 className="text-primary font-medium underline-offset-4 hover:underline"
               >
                 Create one

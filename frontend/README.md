@@ -1,65 +1,36 @@
-# Consumer Attention Mapping System - Frontend
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-This is the React + TypeScript + Vite frontend for the Consumer Attention Mapping System. It is styled with Tailwind CSS and shadcn/ui components, featuring a memory-only JWT authentication scheme and a dark/light mode toggle.
+## Getting Started
 
-## Project Structure
+First, run the development server:
 
-```
-frontend/
-├── src/
-│   ├── components/
-│   │   ├── ui/               # shadcn/ui primitives (Button, Table, Card, etc.)
-│   │   ├── theme-provider.tsx # Light/dark mode context provider
-│   │   └── mode-toggle.tsx    # Theme toggler button
-│   ├── context/
-│   │   └── auth-context.tsx  # In-memory JWT Authentication context
-│   ├── pages/
-│   │   ├── login.tsx         # Sign In page (Card, Input, Label, Button)
-│   │   └── dashboard.tsx     # Stores List Dashboard (Table, Logout)
-│   ├── App.tsx               # Main routing definition
-│   ├── index.css             # Tailwind base layers
-│   └── main.tsx              # React client entry point
-├── components.json           # shadcn configuration
-├── tailwind.config.js        # Tailwind v3 themes and plugins
-├── postcss.config.js
-├── package.json
-└── README.md
-```
-
-## Setup Instructions
-
-### 1. Prerequisites
-Ensure you have **Node.js** (v18 or higher) and **npm** installed on your local machine.
-
-### 2. Install Dependencies
-Navigate to the `frontend/` directory and run:
-```bash
-npm install
-```
-
-### 3. Configure Environment Variables
-Create a local `.env` file from the example template:
-```bash
-cp .env.example .env
-```
-
-Open the `.env` file and set the backend API endpoint URL:
-```env
-VITE_API_BASE_URL=http://localhost:8001
-```
-
-### 4. Run the Development Server
-Start the local Vite development server:
 ```bash
 npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-The application will be running locally at:
-* Local: [http://localhost:5173/](http://localhost:5173/)
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-### 5. Build for Production
-To compile and optimize the assets for production deployment:
-```bash
-npm run build
-```
-The output assets will be generated inside the `dist/` directory.
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
