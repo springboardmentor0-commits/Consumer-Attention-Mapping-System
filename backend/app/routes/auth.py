@@ -9,7 +9,6 @@ from app.schemas.user import UserRegister, UserLogin
 
 router = APIRouter()
 
-
 @router.post("/register")
 def register(user: UserRegister, db: Session = Depends(get_db)):
 
