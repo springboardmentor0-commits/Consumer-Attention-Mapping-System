@@ -5,13 +5,13 @@ from sqlmodel import Session, select
 from app.core.config import settings
 from app.core.db import engine
 from app.models.schemas import Role
-from app.api import auth, stores, shelves, video
+from app.api import auth, layout, video
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Seed roles on startup
     with Session(engine) as session:
-        allowed_roles = ["SuperAdmin", "StoreManager", "Analyst", "MarketingManager", "Admin"]
+        allowed_roles = ["Store Manager", "Retail Analyst", "Marketing Manager", "Admin"]
         for role_name in allowed_roles:
             role = session.exec(select(Role).where(Role.name == role_name)).first()
             if not role:
@@ -30,6 +30,8 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
         "http://localhost:5173",
         "http://localhost:5174",
         "http://127.0.0.1:5173",
@@ -42,9 +44,9 @@ app.add_middleware(
 
 # Register routers
 app.include_router(auth.router, prefix="/api")
-app.include_router(stores.router, prefix="/api")
-app.include_router(shelves.router, prefix="/api")
+app.include_router(layout.router, prefix="/api")
 app.include_router(video.router, prefix="/api")
+
 
 
 

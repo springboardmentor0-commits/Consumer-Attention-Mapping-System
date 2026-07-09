@@ -1,0 +1,492 @@
+{
+  "info": {
+    "name": "Consumer Attention Mapping System - Layout & RBAC API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register Store Manager",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"manager_postman@example.com\",\n  \"password\": \"password123\",\n  \"role_name\": \"Store Manager\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Register Retail Analyst",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"analyst_postman@example.com\",\n  \"password\": \"password123\",\n  \"role_name\": \"Retail Analyst\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login Store Manager",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = JSON.parse(responseBody);",
+                  "pm.environment.set(\"manager_token\", jsonData.access_token);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "username",
+                  "value": "manager_postman@example.com",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "password123",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Login Retail Analyst",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = JSON.parse(responseBody);",
+                  "pm.environment.set(\"analyst_token\", jsonData.access_token);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "username",
+                  "value": "analyst_postman@example.com",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "password123",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Stores CRUD",
+      "item": [
+        {
+          "name": "List Stores (Analyst)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{analyst_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/stores",
+              "host": ["{{base_url}}"],
+              "path": ["api", "stores"]
+            }
+          }
+        },
+        {
+          "name": "Create Store (Unauthenticated) - 401",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Unauth Store\",\n  \"location\": \"Unknown\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/stores",
+              "host": ["{{base_url}}"],
+              "path": ["api", "stores"]
+            }
+          }
+        },
+        {
+          "name": "Create Store (Analyst) - 403",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{analyst_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Unauthorized Store\",\n  \"location\": \"Dallas, TX\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/stores",
+              "host": ["{{base_url}}"],
+              "path": ["api", "stores"]
+            }
+          }
+        },
+        {
+          "name": "Create Store (Manager) - 201",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = JSON.parse(responseBody);",
+                  "pm.environment.set(\"store_id\", jsonData.layout_id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{manager_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Main Floor Plan\",\n  \"location\": \"Houston, TX\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/stores",
+              "host": ["{{base_url}}"],
+              "path": ["api", "stores"]
+            }
+          }
+        },
+        {
+          "name": "Update Store (Manager)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{manager_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Main Floor Plan Updated\",\n  \"location\": \"Houston, TX\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/stores/{{store_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "stores", "{{store_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Store (Manager)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{manager_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/stores/{{store_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "stores", "{{store_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Zones CRUD",
+      "item": [
+        {
+          "name": "Create Zone (Manager)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = JSON.parse(responseBody);",
+                  "pm.environment.set(\"zone_id\", jsonData.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{manager_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"zone_name\": \"Aisle 3\",\n  \"coordinates\": [[0.0, 0.0], [10.0, 10.0]],\n  \"zone_type\": \"checkout\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/stores/{{store_id}}/zones",
+              "host": ["{{base_url}}"],
+              "path": ["api", "stores", "{{store_id}}", "zones"]
+            }
+          }
+        },
+        {
+          "name": "List Zones (Analyst)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{analyst_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/stores/{{store_id}}/zones",
+              "host": ["{{base_url}}"],
+              "path": ["api", "stores", "{{store_id}}", "zones"]
+            }
+          }
+        },
+        {
+          "name": "Update Zone (Manager)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{manager_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"zone_name\": \"Aisle 3 - Snack Section\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/zones/{{zone_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "zones", "{{zone_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Zone (Manager)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{manager_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/zones/{{zone_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "zones", "{{zone_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cameras CRUD",
+      "item": [
+        {
+          "name": "Create Camera (Manager)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = JSON.parse(responseBody);",
+                  "pm.environment.set(\"camera_id\", jsonData.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{manager_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"camera_name\": \"Front Entry Cam\",\n  \"stream_url\": \"rtsp://127.0.0.1/stream1\",\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/stores/{{store_id}}/cameras",
+              "host": ["{{base_url}}"],
+              "path": ["api", "stores", "{{store_id}}", "cameras"]
+            }
+          }
+        },
+        {
+          "name": "List Cameras (Analyst)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{analyst_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/stores/{{store_id}}/cameras",
+              "host": ["{{base_url}}"],
+              "path": ["api", "stores", "{{store_id}}", "cameras"]
+            }
+          }
+        },
+        {
+          "name": "Update Camera (Manager)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{manager_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"camera_name\": \"Front Entry Cam Active\",\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/cameras/{{camera_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "cameras", "{{camera_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Camera (Manager)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{manager_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/cameras/{{camera_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "cameras", "{{camera_id}}"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
