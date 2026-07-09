@@ -12,7 +12,7 @@ from app.core.security import hash_password, verify_password, create_access_toke
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 # Predefined allowed role names
-RoleName = Literal["SuperAdmin", "StoreManager", "Analyst", "MarketingManager", "Admin"]
+RoleName = Literal["SuperAdmin", "StoreManager", "RetailAnalyst", "MarketingManager"]
 
 class UserRegisterRequest(BaseModel):
     email: EmailStr

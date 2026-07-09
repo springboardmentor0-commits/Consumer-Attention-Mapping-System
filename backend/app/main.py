@@ -11,7 +11,7 @@ from app.api import auth, stores, shelves, video
 async def lifespan(app: FastAPI):
     # Seed roles on startup
     with Session(engine) as session:
-        allowed_roles = ["SuperAdmin", "StoreManager", "Analyst", "MarketingManager", "Admin"]
+        allowed_roles = ["SuperAdmin", "StoreManager", "RetailAnalyst", "MarketingManager"]
         for role_name in allowed_roles:
             role = session.exec(select(Role).where(Role.name == role_name)).first()
             if not role:

@@ -16,10 +16,9 @@ import { AlertCircle, CheckCircle2 } from "lucide-react"
 import { ModeToggle } from "@/components/mode-toggle"
 
 const ROLES = [
-  "Analyst",
+  "RetailAnalyst",
   "StoreManager",
   "MarketingManager",
-  "Admin",
   "SuperAdmin",
 ] as const
 
@@ -29,7 +28,7 @@ export function RegisterPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
-  const [roleName, setRoleName] = useState<Role>("Analyst")
+  const [roleName, setRoleName] = useState<Role>("RetailAnalyst")
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)

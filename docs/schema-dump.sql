@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict 64772xyZkBO1KsYPxJqNsOp6oFNTKThvZafKSzkkvw05oOR6rcMiLAqgfAvjuXq
+\restrict Safa4k6utnX8yRvqdkdFOcXgh085sWiGT8AcRdsBDOsZ1R6gdOAwGYNMjhsgUut
 
 -- Dumped from database version 16.14 (Homebrew)
 -- Dumped by pg_dump version 16.14 (Homebrew)
@@ -32,6 +32,40 @@ CREATE TABLE public.alembic_version (
 
 
 ALTER TABLE public.alembic_version OWNER TO ashishkumarhit23;
+
+--
+-- Name: cameras; Type: TABLE; Schema: public; Owner: ashishkumarhit23
+--
+
+CREATE TABLE public.cameras (
+    id uuid NOT NULL,
+    store_id uuid NOT NULL,
+    zone_id uuid,
+    camera_name character varying NOT NULL,
+    stream_url character varying NOT NULL,
+    status character varying NOT NULL,
+    created_at timestamp without time zone NOT NULL
+);
+
+
+ALTER TABLE public.cameras OWNER TO ashishkumarhit23;
+
+--
+-- Name: products; Type: TABLE; Schema: public; Owner: ashishkumarhit23
+--
+
+CREATE TABLE public.products (
+    id uuid NOT NULL,
+    store_id uuid NOT NULL,
+    shelf_id uuid,
+    name character varying NOT NULL,
+    sku character varying NOT NULL,
+    category character varying NOT NULL,
+    created_at timestamp without time zone NOT NULL
+);
+
+
+ALTER TABLE public.products OWNER TO ashishkumarhit23;
 
 --
 -- Name: roles; Type: TABLE; Schema: public; Owner: ashishkumarhit23
@@ -75,7 +109,7 @@ CREATE TABLE public.shelves (
     id uuid NOT NULL,
     store_id uuid NOT NULL,
     shelf_name character varying NOT NULL,
-    zone_coordinates json NOT NULL,
+    zone_coordinates jsonb NOT NULL,
     created_at timestamp without time zone NOT NULL
 );
 
@@ -90,7 +124,7 @@ CREATE TABLE public.stores (
     id uuid NOT NULL,
     name character varying NOT NULL,
     location character varying NOT NULL,
-    metadata json,
+    metadata jsonb,
     created_at timestamp without time zone NOT NULL
 );
 
@@ -114,6 +148,22 @@ CREATE TABLE public.users (
 ALTER TABLE public.users OWNER TO ashishkumarhit23;
 
 --
+-- Name: zones; Type: TABLE; Schema: public; Owner: ashishkumarhit23
+--
+
+CREATE TABLE public.zones (
+    id uuid NOT NULL,
+    store_id uuid NOT NULL,
+    zone_name character varying NOT NULL,
+    coordinates jsonb NOT NULL,
+    zone_type character varying NOT NULL,
+    created_at timestamp without time zone NOT NULL
+);
+
+
+ALTER TABLE public.zones OWNER TO ashishkumarhit23;
+
+--
 -- Name: roles id; Type: DEFAULT; Schema: public; Owner: ashishkumarhit23
 --
 
@@ -126,6 +176,22 @@ ALTER TABLE ONLY public.roles ALTER COLUMN id SET DEFAULT nextval('public.roles_
 
 ALTER TABLE ONLY public.alembic_version
     ADD CONSTRAINT alembic_version_pkc PRIMARY KEY (version_num);
+
+
+--
+-- Name: cameras cameras_pkey; Type: CONSTRAINT; Schema: public; Owner: ashishkumarhit23
+--
+
+ALTER TABLE ONLY public.cameras
+    ADD CONSTRAINT cameras_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: products products_pkey; Type: CONSTRAINT; Schema: public; Owner: ashishkumarhit23
+--
+
+ALTER TABLE ONLY public.products
+    ADD CONSTRAINT products_pkey PRIMARY KEY (id);
 
 
 --
@@ -161,6 +227,21 @@ ALTER TABLE ONLY public.users
 
 
 --
+-- Name: zones zones_pkey; Type: CONSTRAINT; Schema: public; Owner: ashishkumarhit23
+--
+
+ALTER TABLE ONLY public.zones
+    ADD CONSTRAINT zones_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: ix_products_sku; Type: INDEX; Schema: public; Owner: ashishkumarhit23
+--
+
+CREATE INDEX ix_products_sku ON public.products USING btree (sku);
+
+
+--
 -- Name: ix_roles_name; Type: INDEX; Schema: public; Owner: ashishkumarhit23
 --
 
@@ -172,6 +253,38 @@ CREATE UNIQUE INDEX ix_roles_name ON public.roles USING btree (name);
 --
 
 CREATE UNIQUE INDEX ix_users_email ON public.users USING btree (email);
+
+
+--
+-- Name: cameras cameras_store_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ashishkumarhit23
+--
+
+ALTER TABLE ONLY public.cameras
+    ADD CONSTRAINT cameras_store_id_fkey FOREIGN KEY (store_id) REFERENCES public.stores(id) ON DELETE CASCADE;
+
+
+--
+-- Name: cameras cameras_zone_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ashishkumarhit23
+--
+
+ALTER TABLE ONLY public.cameras
+    ADD CONSTRAINT cameras_zone_id_fkey FOREIGN KEY (zone_id) REFERENCES public.zones(id) ON DELETE SET NULL;
+
+
+--
+-- Name: products products_shelf_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ashishkumarhit23
+--
+
+ALTER TABLE ONLY public.products
+    ADD CONSTRAINT products_shelf_id_fkey FOREIGN KEY (shelf_id) REFERENCES public.shelves(id) ON DELETE SET NULL;
+
+
+--
+-- Name: products products_store_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ashishkumarhit23
+--
+
+ALTER TABLE ONLY public.products
+    ADD CONSTRAINT products_store_id_fkey FOREIGN KEY (store_id) REFERENCES public.stores(id) ON DELETE CASCADE;
 
 
 --
@@ -191,8 +304,16 @@ ALTER TABLE ONLY public.users
 
 
 --
+-- Name: zones zones_store_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: ashishkumarhit23
+--
+
+ALTER TABLE ONLY public.zones
+    ADD CONSTRAINT zones_store_id_fkey FOREIGN KEY (store_id) REFERENCES public.stores(id) ON DELETE CASCADE;
+
+
+--
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 64772xyZkBO1KsYPxJqNsOp6oFNTKThvZafKSzkkvw05oOR6rcMiLAqgfAvjuXq
+\unrestrict Safa4k6utnX8yRvqdkdFOcXgh085sWiGT8AcRdsBDOsZ1R6gdOAwGYNMjhsgUut
 

@@ -56,7 +56,7 @@ def list_stores(
 def create_store(
     payload: StoreCreateRequest,
     session: Session = Depends(get_session),
-    current_user = Depends(require_role("StoreManager", "SuperAdmin", "Admin"))
+    current_user = Depends(require_role("StoreManager", "SuperAdmin"))
 ):
     # 1. Create the Store record
     new_store = Store(

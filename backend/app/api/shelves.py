@@ -52,7 +52,7 @@ def create_shelf(
     storeId: uuid.UUID,
     payload: ShelfCreateRequest,
     session: Session = Depends(get_session),
-    current_user = Depends(require_role("StoreManager", "SuperAdmin", "Admin"))
+    current_user = Depends(require_role("StoreManager", "SuperAdmin"))
 ):
     # Verify store exists
     store = session.get(Store, storeId)
