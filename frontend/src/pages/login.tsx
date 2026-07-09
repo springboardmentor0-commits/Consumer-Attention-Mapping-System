@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, Link } from "react-router-dom"
 import { useAuth } from "@/context/auth-context"
 import {
   Card,
@@ -105,10 +105,19 @@ export function LoginPage() {
               />
             </div>
           </CardContent>
-          <CardFooter>
+          <CardFooter className="flex flex-col gap-3">
             <Button className="w-full" type="submit" disabled={loading}>
               {loading ? "Signing in..." : "Sign In"}
             </Button>
+            <p className="text-sm text-muted-foreground text-center">
+              Don't have an account?{" "}
+              <Link
+                to="/register"
+                className="text-primary font-medium underline-offset-4 hover:underline"
+              >
+                Create one
+              </Link>
+            </p>
           </CardFooter>
         </form>
       </Card>
