@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey
 from database import Base
 
 
@@ -47,3 +47,22 @@ class Shelf(Base):
     store_id = Column(Integer, ForeignKey("stores.id"))
 
     zone_name = Column(String)
+
+
+# -------------------------
+# Tracking Sessions Table
+# -------------------------
+class TrackingSession(Base):
+    __tablename__ = "tracking_sessions"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    tracker_id = Column(Integer)
+
+    shelf_id = Column(Integer, ForeignKey("shelves.id"))
+
+    entry_time = Column(DateTime)
+
+    exit_time = Column(DateTime)
+
+    dwell_duration = Column(Float)
