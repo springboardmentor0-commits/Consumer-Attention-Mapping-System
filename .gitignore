@@ -21,3 +21,12 @@ venv/
 
 # Windows
 Thumbs.db
+
+# AI Models
+*.pt
+
+# Output Videos
+outputs/
+
+# Python cache
+*.pyc
