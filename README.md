@@ -192,6 +192,4 @@ source of schema changes going forward.
 - Gaze estimation / dwell time calculation
 - Writing tracking events into MongoDB
 
-Let me know when you're ready to move into Milestone 2 and I'll scaffold the
-video ingestion + detection pipeline (Kafka/Redis streams, YOLOv8 inference
-service, MongoDB event writes) on top of this foundation.
+
