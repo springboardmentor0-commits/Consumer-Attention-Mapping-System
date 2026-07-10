@@ -8,6 +8,8 @@ import supervision as sv
 import cv2
 import time
 
+
+
 from database import SessionLocal
 from models import TrackingSession
 from datetime import datetime
@@ -28,15 +30,22 @@ active_ids = set()
 box_annotator = sv.BoxAnnotator()
 label_annotator = sv.LabelAnnotator()
 
+
+
 video_path = "videos/vtest.avi"
 cap = cv2.VideoCapture(video_path)
+# Shelf zones
+SHELF_A_X = None
 
 while cap.isOpened():
 
     success, frame = cap.read()
-
+    
     if not success:
         break
+
+    if SHELF_A_X is None:
+        SHELF_A_X = frame.shape[1] // 2
 
     # YOLO detection
     results = model(frame, classes=[0], verbose=False)[0]
@@ -80,15 +89,24 @@ while cap.isOpened():
     # Create labels
     labels = []
 
-    for tracker_id in detections.tracker_id:
+    for i, tracker_id in enumerate(detections.tracker_id):
 
         if tracker_id not in entry_times:
             entry_times[tracker_id] = time.time()
 
         dwell_time = time.time() - entry_times[tracker_id]
 
+        x1, y1, x2, y2 = detections.xyxy[i]
+
+        center_x = (x1 + x2) / 2
+
+        if center_x < SHELF_A_X:
+            shelf = "Shelf A"
+        else:
+            shelf = "Shelf B"
+
         labels.append(
-            f"ID {tracker_id} | {dwell_time:.1f}s"
+            f"ID {tracker_id} | {dwell_time:.1f}s | {shelf}"
         )
 
     # Draw boxes
@@ -105,6 +123,34 @@ while cap.isOpened():
     )
 
     active_ids = current_ids
+
+    cv2.line(
+        annotated_frame,
+        (SHELF_A_X, 0),
+        (SHELF_A_X, annotated_frame.shape[0]),
+        (0, 255, 255),
+        2
+    )
+    
+    cv2.putText(
+        annotated_frame,
+        "Shelf A",
+        (20, 40),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        1,
+        (0, 255, 0),
+        2
+    )
+
+    cv2.putText(
+        annotated_frame,
+        "Shelf B",
+        (SHELF_A_X + 20, 40),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        1,
+        (0, 255, 0),
+        2
+    )
 
     cv2.imshow("Consumer Tracking", annotated_frame)
 
