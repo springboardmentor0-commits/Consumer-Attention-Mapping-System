@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, Float, DateTime
 from sqlalchemy.orm import relationship
 
 from database import Base
@@ -51,3 +51,18 @@ class Shelf(Base):
         "Store",
         back_populates="shelves"
     )
+
+class DwellTimeRecord(Base):
+    __tablename__ = "dwell_time_records"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    shopper_id = Column(Integer, nullable=False)
+
+    shelf_id = Column(String, default="Shelf Zone")
+
+    entry_time = Column(DateTime, nullable=False)
+
+    exit_time = Column(DateTime, nullable=False)
+
+    total_dwell_duration = Column(Float, nullable=False)

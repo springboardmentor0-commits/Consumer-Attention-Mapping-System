@@ -3,10 +3,13 @@ from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from database import engine, get_db
+from database import engine, get_db, Base
 from models import User, Role, Store, Shelf
 from schemas import UserRegister, UserLogin, StoreCreate, ShelfCreate
 from auth import hash_password, verify_password, create_access_token
+
+# Create all database tables
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 app.add_middleware(
