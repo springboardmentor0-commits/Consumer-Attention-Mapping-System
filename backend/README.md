@@ -2,29 +2,33 @@
 
 ## Overview
 
-This is the backend service for the Consumer Attention Mapping System.
-
-The backend is built using **FastAPI** and is responsible for:
-
-- User Authentication (JWT)
-- Store Management
-- Shelf Management
-- Camera Management
-- Database Operations
-- REST API Development
-- OpenCV Video Stream Processing (Future Milestones)
+The backend of the Consumer Attention Mapping System is built using **FastAPI** and **PostgreSQL**. It provides secure REST APIs for authentication, store management, shelf management, and role-based access control. It also includes OpenCV integration for video streaming, forming the foundation for future computer vision analytics.
 
 ---
 
 ## Tech Stack
 
-- Python
 - FastAPI
 - PostgreSQL
-- SQLAlchemy
+- SQLAlchemy ORM
+- Pydantic
 - JWT Authentication
+- Passlib (bcrypt)
 - OpenCV
 - Uvicorn
+
+---
+
+## Features
+
+- User Registration & Login
+- JWT Authentication
+- Role-Based Access Control (RBAC)
+- Store CRUD Operations
+- Shelf CRUD Operations
+- PostgreSQL Database Integration
+- OpenCV Video Stream Support
+- Automatic Role Seeding
 
 ---
 
@@ -36,13 +40,12 @@ backend/
 ├── app/
 │   ├── api/
 │   ├── core/
+│   ├── crud/
 │   ├── models/
+│   ├── schemas/
 │   ├── services/
 │   └── main.py
 │
-├── venv/
-├── .env
-├── .gitignore
 ├── requirements.txt
 └── README.md
 ```
@@ -51,31 +54,13 @@ backend/
 
 ## Installation
 
-### 1. Clone the repository
-
-```bash
-git clone <repository-url>
-```
-
----
-
-### 2. Move into the backend folder
-
-```bash
-cd backend
-```
-
----
-
-### 3. Create a virtual environment
+### Create Virtual Environment
 
 ```bash
 python -m venv venv
 ```
 
----
-
-### 4. Activate the virtual environment
+Activate
 
 Windows
 
@@ -83,15 +68,9 @@ Windows
 venv\Scripts\activate
 ```
 
-Linux / macOS
-
-```bash
-source venv/bin/activate
-```
-
 ---
 
-### 5. Install dependencies
+### Install Dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -99,21 +78,34 @@ pip install -r requirements.txt
 
 ---
 
-## Running the Backend
+### Configure Environment Variables
 
-Start the FastAPI server:
+Create a `.env` file inside the backend folder.
+
+Example:
+
+```
+DATABASE_URL=postgresql://username:password@localhost:5432/database_name
+SECRET_KEY=your_secret_key
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+```
+
+---
+
+### Run Backend
 
 ```bash
 uvicorn app.main:app --reload
 ```
 
-The backend will run at:
+Backend runs at
 
 ```
 http://127.0.0.1:8000
 ```
 
-Swagger Documentation:
+Swagger Documentation
 
 ```
 http://127.0.0.1:8000/docs
@@ -121,27 +113,48 @@ http://127.0.0.1:8000/docs
 
 ---
 
-## Current Milestone
+## API Modules
 
-Milestone 1
-
-Completed:
-
-- Project Initialization
-- FastAPI Setup
-- Backend Folder Structure
-- Environment Configuration
-- Dependency Installation
-
-Upcoming:
-
-- PostgreSQL Integration
-- JWT Authentication
-- Store & Shelf CRUD APIs
-- OpenCV Stream Verification
+- Authentication
+- Stores
+- Shelves
 
 ---
 
-## Author
+## Authentication
 
-Consumer Attention Mapping System Team
+Uses JWT Bearer Tokens.
+
+Roles supported:
+
+- SuperAdmin
+- StoreManager
+- Analyst
+
+---
+
+## OpenCV Video Stream
+
+Supports:
+
+- Local Webcam
+- MP4 Video Files
+- RTSP Camera Streams
+
+Displays:
+
+- Frame Count
+- Timestamp
+- FPS
+- Memory Usage
+
+---
+
+## Milestone 1 Deliverables
+
+- Authentication
+- JWT Authorization
+- RBAC
+- PostgreSQL Integration
+- CRUD APIs
+- OpenCV Streaming
