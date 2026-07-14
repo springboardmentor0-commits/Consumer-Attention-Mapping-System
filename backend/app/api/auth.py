@@ -1,46 +1,158 @@
-# backend/app/api/auth.py
-from fastapi import APIRouter, HTTPException, status
-from app.models.user import UserRegisterRequest, UserLoginRequest, TokenResponse
-from app.core.security import get_password_hash, verify_password, create_access_token
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
 
-router = APIRouter(prefix="/api/auth", tags=["Authentication"])
+from app.core.database import get_db
+from app.core.security import (
+    create_access_token,
+    get_password_hash,
+    verify_password,
+)
 
-# Core Database Store Mirror for Phase Validation
-MOCK_USER_DB = {}
-ROLE_MAPPING = {
-    1: "Admin", 
-    2: "Store Manager", 
-    3: "Retail Analyst", 
-    4: "Marketing Manager"
-}
+from app.models.database_models import (
+    UserModel,
+    RoleModel,
+)
 
-@router.post("/register", status_code=status.HTTP_201_CREATED)
-def register(payload: UserRegisterRequest):
-    if payload.email in MOCK_USER_DB:
-        raise HTTPException(status_code=400, detail="Email already registered")
-    
-    if payload.role_id not in ROLE_MAPPING:
-        raise HTTPException(status_code=400, detail="Invalid role_id specification")
+from app.models.user import (
+    UserRegisterRequest,
+    UserLoginRequest,
+    TokenResponse,
+)
 
-    # Passlib transforms the clean text safely
-    hashed_password = get_password_hash(payload.password)
-    
-    MOCK_USER_DB[payload.email] = {
-        "email": payload.email,
-        "password_hash": hashed_password,
-        "role": ROLE_MAPPING[payload.role_id]
-    }
-    return {"message": "User registered successfully"}
+# ==========================================================
+# Router Configuration
+# ==========================================================
 
-@router.post("/login", response_model=TokenResponse)
-def login(payload: UserLoginRequest):
-    user = MOCK_USER_DB.get(payload.email)
-    if not user or not verify_password(payload.password, user["password_hash"]):
+router = APIRouter(
+    prefix="/api/auth",
+    tags=["Authentication"],
+)
+
+
+# ==========================================================
+# Register User
+# ==========================================================
+
+@router.post(
+    "/register",
+    status_code=status.HTTP_201_CREATED,
+)
+def register(
+    user_data: UserRegisterRequest,
+    db: Session = Depends(get_db),
+):
+    """
+    Register a new application user.
+    """
+
+    # ------------------------------------------------------
+    # Check if email already exists
+    # ------------------------------------------------------
+
+    existing_user = (
+        db.query(UserModel)
+        .filter(UserModel.email == user_data.email)
+        .first()
+    )
+
+    if existing_user:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, 
-            detail="Incorrect email or password credentials"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered.",
         )
-    
-    # Encrypt the assigned user role tracking into token payload
-    access_token = create_access_token(subject=user["email"], role=user["role"])
-    return {"access_token": access_token, "token_type": "bearer"}
+
+    # ------------------------------------------------------
+    # Validate Role
+    # ------------------------------------------------------
+
+    role = (
+        db.query(RoleModel)
+        .filter(RoleModel.id == user_data.role_id)
+        .first()
+    )
+
+    if role is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid role selected.",
+        )
+
+    # ------------------------------------------------------
+    # Create User
+    # ------------------------------------------------------
+
+    new_user = UserModel(
+        email=user_data.email,
+        password_hash=get_password_hash(
+            user_data.password,
+        ),
+        role=role,
+    )
+
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    return {
+        "message": "User registered successfully.",
+    }
+
+
+# ==========================================================
+# Login User
+# ==========================================================
+
+@router.post(
+    "/login",
+    response_model=TokenResponse,
+)
+def login(
+    user_data: UserLoginRequest,
+    db: Session = Depends(get_db),
+):
+    """
+    Authenticate a user and generate a JWT.
+    """
+
+    # ------------------------------------------------------
+    # Find User
+    # ------------------------------------------------------
+
+    user = (
+        db.query(UserModel)
+        .filter(UserModel.email == user_data.email)
+        .first()
+    )
+
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password.",
+        )
+
+    # ------------------------------------------------------
+    # Verify Password
+    # ------------------------------------------------------
+
+    if not verify_password(
+        user_data.password,
+        user.password_hash,
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password.",
+        )
+
+    # ------------------------------------------------------
+    # Generate JWT
+    # ------------------------------------------------------
+
+    access_token = create_access_token(
+        subject=user.email,
+        role=user.role.role_name,
+    )
+
+    return TokenResponse(
+        access_token=access_token,
+        token_type="bearer",
+    )

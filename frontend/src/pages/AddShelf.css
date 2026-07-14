@@ -1,0 +1,92 @@
+/* ==========================================================
+   Add Shelf Page
+========================================================== */
+
+.add-shelf-page {
+    min-height: 100vh;
+    background: #f4f7fb;
+    padding: 2rem;
+}
+
+/* ==========================================================
+   Header
+========================================================== */
+
+.add-shelf-header {
+    max-width: 800px;
+    margin: 0 auto 2rem;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.add-shelf-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.add-shelf-subtitle {
+    margin-top: 0.35rem;
+    color: #64748b;
+}
+
+/* ==========================================================
+   Card
+========================================================== */
+
+.add-shelf-card {
+    max-width: 800px;
+    margin: auto;
+
+    border-radius: 16px;
+
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
+}
+
+/* ==========================================================
+   Form
+========================================================== */
+
+.add-shelf-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.add-shelf-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+/* ==========================================================
+   Button
+========================================================== */
+
+.add-shelf-button {
+    width: 100%;
+}
+
+/* ==========================================================
+   Responsive
+========================================================== */
+
+@media (max-width: 768px) {
+
+    .add-shelf-page {
+        padding: 1rem;
+    }
+
+    .add-shelf-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .add-shelf-title {
+        font-size: 1.7rem;
+    }
+
+}

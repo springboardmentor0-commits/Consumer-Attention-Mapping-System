@@ -1,6 +1,6 @@
 # backend/run_test.py
 import os
-from backend.app.services.camera_test import run_camera_verification
+from app.services.camera_test import run_camera_verification
 
 print("====================================================")
 print("🎬 INTERACTIVE MP4 VIDEO PLAYER")

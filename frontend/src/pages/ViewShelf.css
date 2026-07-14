@@ -1,0 +1,126 @@
+/* ==========================================================
+   View Shelves Page
+========================================================== */
+
+.view-shelves-page {
+    min-height: 100vh;
+    background: #f4f7fb;
+    padding: 2rem;
+}
+
+/* ==========================================================
+   Header
+========================================================== */
+
+.view-shelves-header {
+    max-width: 1000px;
+    margin: 0 auto 2rem;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.view-shelves-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.view-shelves-subtitle {
+    margin-top: .4rem;
+    color: #64748b;
+}
+
+/* ==========================================================
+   Card
+========================================================== */
+
+.view-shelves-card {
+    max-width: 1000px;
+    margin: auto;
+
+    border-radius: 16px;
+
+    box-shadow: 0 12px 30px rgba(0,0,0,.06);
+}
+
+/* ==========================================================
+   Messages
+========================================================== */
+
+.view-shelves-message {
+    text-align: center;
+    padding: 2rem;
+    color: #64748b;
+}
+
+.view-shelves-error {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+/* ==========================================================
+   Table
+========================================================== */
+
+.table-wrapper {
+    overflow-x: auto;
+}
+
+.view-shelves-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.view-shelves-table thead {
+    background: #f8fafc;
+}
+
+.view-shelves-table th,
+.view-shelves-table td {
+
+    padding: 1rem;
+
+    border-bottom: 1px solid #e2e8f0;
+
+    text-align: left;
+
+}
+
+.view-shelves-table th {
+    color: #334155;
+    font-weight: 600;
+}
+
+.view-shelves-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+/* ==========================================================
+   Responsive
+========================================================== */
+
+@media (max-width:768px){
+
+    .view-shelves-page{
+        padding:1rem;
+    }
+
+    .view-shelves-header{
+
+        flex-direction:column;
+
+        align-items:flex-start;
+
+        gap:1rem;
+    }
+
+    .view-shelves-title{
+        font-size:1.6rem;
+    }
+
+}

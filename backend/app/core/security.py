@@ -1,31 +1,202 @@
 from datetime import datetime, timedelta, timezone
-from typing import Any, Union
+from typing import Any, Dict, Union
+import os
+
+from dotenv import load_dotenv
+
 import jwt
+from jwt import ExpiredSignatureError, InvalidTokenError
+
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
 from passlib.context import CryptContext
 
-# Configuration
-SECRET_KEY = "SUPER_SECRET_GOOGLE_DEVELOPER_KEY_CHANGE_THIS"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 480
+# ==========================================================
+# Load Environment Variables
+# ==========================================================
 
-# 🔧 CHANGED HERE: Switch from "bcrypt" to "pbkdf2_sha256" to fix the Python 3.10 bug
-pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
+load_dotenv()
+
+SECRET_KEY = (
+    os.getenv("SECRET_KEY")
+    or os.getenv("JWT_SECRET_KEY")
+    or "dev-secret-key-change-in-production"
+)
+ALGORITHM = os.getenv("ALGORITHM", "HS256")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(
+    os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 60)
+)
+
+# ==========================================================
+# Password Hashing
+# ==========================================================
+
+pwd_context = CryptContext(
+    schemes=["pbkdf2_sha256"],
+    deprecated="auto",
+)
+
+# ==========================================================
+# HTTP Bearer Authentication
+# ==========================================================
+
+security = HTTPBearer()
+
+# ==========================================================
+# Password Utilities
+# ==========================================================
 
 def get_password_hash(password: str) -> str:
-    """Hashes a plain text password safely."""
+    """
+    Hash a plain-text password.
+    """
     return pwd_context.hash(password)
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verifies a plain text password against its stored hash."""
-    return pwd_context.verify(plain_password, hashed_password)
 
-def create_access_token(subject: Union[str, Any], role: str) -> str:
-    """Generates an encrypted JWT token containing the subject (email) and user role."""
-    expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode = {
-        "exp": expire, 
-        "sub": str(subject), 
-        "role": role  
+def verify_password(
+    plain_password: str,
+    hashed_password: str,
+) -> bool:
+    """
+    Verify a password against its hash.
+    """
+    return pwd_context.verify(
+        plain_password,
+        hashed_password,
+    )
+
+
+# ==========================================================
+# JWT Creation
+# ==========================================================
+
+def create_access_token(
+    subject: Union[str, Any],
+    role: str,
+) -> str:
+    """
+    Create a signed JWT.
+    """
+
+    expire = (
+        datetime.now(timezone.utc)
+        + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
+
+    payload = {
+        "sub": str(subject),
+        "role": role,
+        "exp": expire,
     }
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
+
+    return jwt.encode(
+        payload,
+        SECRET_KEY,
+        algorithm=ALGORITHM,
+    )
+
+
+# ==========================================================
+# JWT Verification
+# ==========================================================
+
+def verify_access_token(
+    token: str,
+) -> Dict[str, Any]:
+    """
+    Decode and validate a JWT.
+    """
+
+    try:
+
+        return jwt.decode(
+            token,
+            SECRET_KEY,
+            algorithms=[ALGORITHM],
+        )
+
+    except ExpiredSignatureError:
+
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has expired.",
+        )
+
+    except InvalidTokenError:
+
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication token.",
+        )
+
+
+# ==========================================================
+# Current User
+# ==========================================================
+
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+):
+    """
+    Read and validate JWT from Authorization header.
+    """
+
+    token = credentials.credentials
+
+    return verify_access_token(token)
+
+
+# ==========================================================
+# Role Authorization
+# ==========================================================
+
+def require_roles(*allowed_roles):
+    """
+    Allow access to one or more roles.
+
+    Example:
+        Depends(require_roles("Admin"))
+
+        Depends(require_roles(
+            "Admin",
+            "Store Manager",
+        ))
+    """
+
+    def role_checker(
+        current_user=Depends(get_current_user),
+    ):
+
+        if current_user["role"] not in allowed_roles:
+
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You do not have permission to access this resource.",
+            )
+
+        return current_user
+
+    return role_checker
+
+
+# ==========================================================
+# Ready-to-use Dependencies
+# ==========================================================
+
+require_admin = require_roles("Admin")
+
+require_store_manager = require_roles(
+    "Admin",
+    "Store Manager",
+)
+
+require_retail_analyst = require_roles(
+    "Admin",
+    "Retail Analyst",
+)
+
+require_marketing_manager = require_roles(
+    "Admin",
+    "Marketing Manager",
+)
