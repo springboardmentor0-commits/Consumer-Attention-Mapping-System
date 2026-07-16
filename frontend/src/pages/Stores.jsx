@@ -17,6 +17,7 @@ function Stores() {
 
     const [storeName, setStoreName] = useState("");
     const [location, setLocation] = useState("");
+    const [storeMetadata, setStoreMetadata] = useState("");
 
     const [stores, setStores] = useState([]);
     const [shelves, setShelves] = useState([]);
@@ -60,11 +61,13 @@ function Stores() {
 
             await api.post("/stores", {
                 store_name: storeName,
-                location: location
+                location: location,
+                store_metadata: storeMetadata
             });
 
             setStoreName("");
             setLocation("");
+            setStoreMetadata("");
 
             getData();
 
@@ -142,6 +145,13 @@ function Stores() {
                         onChange={(e) => setLocation(e.target.value)}
                     />
 
+                    <input
+                        type="text"
+                        placeholder="Metadata (Optional)"
+                        value={storeMetadata}
+                        onChange={(e) => setStoreMetadata(e.target.value)}
+                    />
+
                     <button
                         className="primary-btn"
                         onClick={addStore}
@@ -184,6 +194,10 @@ function Stores() {
                                 <h3>🏪 {store.store_name}</h3>
 
                                 <p>📍 {store.location}</p>
+
+                                {store.store_metadata && (
+                                    <p>ℹ️ {store.store_metadata}</p>
+                                )}
 
                                 {canManage && (
 

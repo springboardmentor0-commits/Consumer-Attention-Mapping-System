@@ -1,8 +1,11 @@
 from urllib.parse import quote_plus
+import os
+
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from dotenv import load_dotenv
-import os
+
+from app.models.base import Base
 
 load_dotenv()
 
@@ -15,6 +18,7 @@ DATABASE_URL = (
     f"{os.getenv('DATABASE_PORT')}/"
     f"{os.getenv('DATABASE_NAME')}"
 )
+
 engine = create_engine(DATABASE_URL)
 
 SessionLocal = sessionmaker(
@@ -23,12 +27,13 @@ SessionLocal = sessionmaker(
     bind=engine
 )
 
-from app.models.base import Base
 
 def get_db():
+
     db = SessionLocal()
 
     try:
         yield db
+
     finally:
         db.close()

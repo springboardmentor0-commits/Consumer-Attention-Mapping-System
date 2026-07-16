@@ -1,0 +1,15 @@
+tracker_type: bytetrack
+
+# Detection confidence thresholds
+track_high_thresh: 0.45
+track_low_thresh: 0.10
+new_track_thresh: 0.45
+
+# Keep lost tracks alive (frames)
+track_buffer: 90
+
+# Matching threshold
+match_thresh: 0.80
+
+# Fuse confidence score
+fuse_score: True

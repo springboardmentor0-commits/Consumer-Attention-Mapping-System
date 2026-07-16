@@ -12,3 +12,5 @@ class Store(Base):
 
     location = Column(String, nullable=False)
 
+    store_metadata = Column(String, nullable=True)
+

@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.database import get_db
+from app.core.database import get_db
+from app.core.dependencies import require_role, get_current_user
+
 from app.models.shelf import Shelf
 from app.schemas.shelf import ShelfCreate
-from app.auth.dependencies import require_role, get_current_user
 
 router = APIRouter()
 
@@ -20,7 +21,8 @@ def create_shelf(
 
     new_shelf = Shelf(
         zone_name=shelf.zone_name,
-        store_id=shelf.store_id
+        store_id=shelf.store_id,
+        zone_coordinates=shelf.zone_coordinates
     )
 
     db.add(new_shelf)

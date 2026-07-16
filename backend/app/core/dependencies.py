@@ -3,9 +3,10 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from jose import jwt, JWTError
 
-from app.database import get_db
+from app.core.database import get_db
+from app.core.jwt_handler import SECRET_KEY, ALGORITHM
+
 from app.models.user import User
-from app.auth.jwt_handler import SECRET_KEY, ALGORITHM
 
 security = HTTPBearer()
 
@@ -46,6 +47,8 @@ def get_current_user(
         )
 
     return user
+
+
 def require_role(allowed_roles: list):
 
     def role_checker(

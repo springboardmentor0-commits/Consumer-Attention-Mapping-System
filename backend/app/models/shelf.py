@@ -10,3 +10,5 @@ class Shelf(Base):
     zone_name = Column(String, nullable=False)
 
     store_id = Column(Integer, ForeignKey("stores.id"))
+
+    zone_coordinates = Column(String, nullable=True)
