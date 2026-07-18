@@ -25,3 +25,4 @@ frontend/.env.production.local
 .DS_Store
 *.log
 *.sqlite3
+*.pt
