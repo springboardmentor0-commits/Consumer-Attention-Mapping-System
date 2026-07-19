@@ -5,6 +5,10 @@ from app.models.zone import StoreZone, ZoneType
 from app.models.shelf import Shelf
 from app.models.camera import Camera, CameraStatus
 from app.models.product import Product
+from app.models.shopper_session import ShopperSession
+from app.models.attention_event import AttentionEvent
+from app.models.dwell_time import DwellTimeRecord
+from app.models.tracking_session import TrackingSession
 
 __all__ = [
     "Base",
@@ -17,4 +21,8 @@ __all__ = [
     "Camera",
     "CameraStatus",
     "Product",
+    "ShopperSession",
+    "AttentionEvent",
+    "DwellTimeRecord",
+    "TrackingSession",
 ]

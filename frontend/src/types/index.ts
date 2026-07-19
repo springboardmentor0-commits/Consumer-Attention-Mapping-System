@@ -83,3 +83,64 @@ export interface ApiResponse<T> {
   detail?: string;
   error?: string;
 }
+
+export interface ShelfAttentionSummary {
+  shelf_id: string;
+  shelf_name: string;
+  total_attention_seconds: number;
+  unique_viewers: number;
+  avg_dwell_seconds: number;
+  engagement_rank?: number;
+}
+
+export interface ZoneTrafficSummary {
+  zone_id: string;
+  zone_name: string;
+  total_visitors: number;
+  avg_time_seconds: number;
+}
+
+export interface HourlyTrafficPoint {
+  hour: number;
+  visitor_count: number;
+  avg_dwell_seconds: number;
+}
+
+export interface DashboardAnalytics {
+  store_id: string;
+  period: string;
+  total_visitors: number;
+  avg_dwell_time_seconds: number;
+  top_attention_shelves: ShelfAttentionSummary[];
+  zone_traffic: ZoneTrafficSummary[];
+  hourly_traffic: HourlyTrafficPoint[];
+  active_shoppers_now: number;
+}
+
+export interface AttentionReportResponse {
+  store_id: string;
+  generated_at: string;
+  period: string;
+  data: DashboardAnalytics;
+}
+
+export interface TrackingSession {
+  id: string;
+  camera_id: string;
+  store_id: string;
+  video_source: string;
+  status: string;
+  started_at: string;
+  ended_at?: string;
+  total_frames_processed: number;
+  unique_shoppers_count: number;
+  avg_fps: number;
+}
+
+export interface ActiveShopperInfo {
+  tracker_id: number;
+  current_dwell_seconds: number;
+  is_looking_at_shelf: boolean;
+  head_yaw?: number;
+}
+

@@ -22,12 +22,10 @@ if config.config_file_name is not None:
 
 # Import Base and models for 'autogenerate' support
 from app.db.postgres import Base
-from app.models.user import User
-from app.models.store import Store
-from app.models.zone import StoreZone
-from app.models.shelf import Shelf
-from app.models.camera import Camera
-from app.models.product import Product
+from app.models import (
+    User, Store, StoreZone, Shelf, Camera, Product,
+    ShopperSession, AttentionEvent, DwellTimeRecord, TrackingSession
+)
 
 # Register metadata
 target_metadata = Base.metadata

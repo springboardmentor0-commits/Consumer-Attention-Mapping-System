@@ -363,12 +363,17 @@ Email
 
 ```
 admin@example.com
+storemanager@gmail.com
+storemanager23@gmail.com
 ```
 
 Password
 
 ```
 Admin@123
+store@23
+store@231
+
 ```
 
 Role

@@ -6,7 +6,9 @@ import { useAuth } from "../../hooks/useAuth";
 import { Navbar } from "../../components/layout/Navbar";
 import { Sidebar } from "../../components/layout/Sidebar";
 import { LoadingSpinner } from "../../components/common/LoadingSpinner";
+import StoreManagerDashboard from "../../components/dashboard/StoreManagerDashboard";
 import { ROUTES } from "../../utils/constants";
+import api from "../../services/api";
 
 const kpis = [
   {
@@ -35,22 +37,31 @@ const kpis = [
   },
 ];
 
-const alertItems = [
-  { time: "2 min ago", msg: "Camera CAM-07 went offline in Store #3", type: "error" },
-  { time: "11 min ago", msg: "Footfall spike detected: Aisle A (+340%)", type: "info" },
-  { time: "28 min ago", msg: "New store 'Midtown Branch' registered", type: "success" },
-  { time: "1 hr ago", msg: "Weekly analytics report generated", type: "info" },
-  { time: "2 hr ago", msg: "Redis cache flush completed", type: "success" },
-];
-
 export default function DashboardPage() {
   const router = useRouter();
   const { user, isAuthenticated, isLoading } = useAuth();
   const [tick, setTick] = useState(0);
+  const [selectedStoreId, setSelectedStoreId] = useState('');
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) router.replace(ROUTES.AUTH);
     const id = setInterval(() => setTick(t => t + 1), 3000);
+    
+    // Load store id from localStorage or fetch default
+    const sid = localStorage.getItem('selected_store_id') || '';
+    if (sid) {
+      setSelectedStoreId(sid);
+    } else {
+      // Fetch the first store if none is selected
+      api.get('/stores').then(res => {
+        if (res.data && res.data.length > 0) {
+          const firstStoreId = res.data[0].id;
+          localStorage.setItem('selected_store_id', firstStoreId);
+          setSelectedStoreId(firstStoreId);
+        }
+      }).catch(err => console.error("Could not fetch stores", err));
+    }
+    
     return () => clearInterval(id);
   }, [isAuthenticated, isLoading, router]);
 
@@ -63,6 +74,7 @@ export default function DashboardPage() {
   }
 
   const greeting = new Date().getHours() < 12 ? "Good morning" : new Date().getHours() < 18 ? "Good afternoon" : "Good evening";
+  const isStoreManager = user.role === 'store_manager' || user.role === 'super_admin';
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "#020817" }}>
@@ -96,157 +108,62 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* KPI Grid */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
-            {kpis.map((kpi) => (
-              <div key={kpi.title} className="kpi-card" style={{ "--accent-gradient": kpi.accentGradient } as React.CSSProperties}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
-                  <div style={{ padding: 10, background: "rgba(5,15,35,0.8)", borderRadius: 10, border: "1px solid rgba(30,45,74,0.6)" }}>
-                    {kpi.icon}
-                  </div>
-                  <span style={{
-                    fontSize: 11, fontWeight: 700, padding: "3px 8px", borderRadius: 6,
-                    background: kpi.positive ? "rgba(16,185,129,0.1)" : "rgba(244,63,94,0.1)",
-                    color: kpi.positive ? "#34d399" : "#fb7185",
-                    border: `1px solid ${kpi.positive ? "rgba(16,185,129,0.25)" : "rgba(244,63,94,0.25)"}`,
-                  }}>
-                    {kpi.change}
-                  </span>
-                </div>
-                <div style={{ fontSize: 30, fontWeight: 900, color: "#f0f4ff", letterSpacing: "-0.03em", lineHeight: 1, marginBottom: 4 }}>
-                  {kpi.value}
-                </div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: "#8ba3c7", marginBottom: 2 }}>{kpi.title}</div>
-                <div style={{ fontSize: 11, color: "#2a3f60" }}>{kpi.sub}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Main content grid */}
-          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 20 }}>
-            {/* Heatmap panel */}
-            <div style={{
-              background: "rgba(13, 21, 38, 0.7)", border: "1px solid rgba(30,45,74,0.6)",
-              borderRadius: 16, padding: 24, overflow: "hidden", position: "relative",
-              boxShadow: "0 25px 50px rgba(0,0,0,0.2)",
-            }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-                <div>
-                  <h2 style={{ fontSize: 16, fontWeight: 800, color: "#e2e8f0", letterSpacing: "-0.01em" }}>
-                    Live Attention Heatmap
-                  </h2>
-                  <p style={{ fontSize: 11, color: "#2a3f60", marginTop: 2 }}>Store #01 — North Wing Floor Plan</p>
-                </div>
-                <div style={{
-                  display: "flex", alignItems: "center", gap: 6,
-                  background: "rgba(5,15,35,0.6)", border: "1px solid rgba(30,45,74,0.5)",
-                  borderRadius: 8, padding: "5px 12px",
-                }}>
-                  <div className="live-dot" />
-                  <span style={{ fontSize: 11, color: "#34d399", fontWeight: 600 }}>LIVE FEED</span>
-                </div>
-              </div>
-
-              {/* Heatmap visualisation */}
-              <div style={{
-                height: 280, borderRadius: 12, overflow: "hidden", position: "relative",
-                background: "linear-gradient(180deg, #020c1e 0%, #030d1f 100%)",
-                border: "1px solid rgba(30,45,74,0.5)",
-              }}>
-                {/* Grid overlay */}
-                <div style={{
-                  position: "absolute", inset: 0,
-                  backgroundImage: "linear-gradient(rgba(59,130,246,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,0.06) 1px, transparent 1px)",
-                  backgroundSize: "40px 40px",
-                }} />
-                {/* Heat blobs */}
-                <div style={{ position: "absolute", top: "30%", left: "20%", width: 120, height: 120, borderRadius: "50%", background: "radial-gradient(circle, rgba(239,68,68,0.5) 0%, rgba(239,68,68,0.1) 60%, transparent 100%)", filter: "blur(12px)" }} />
-                <div style={{ position: "absolute", top: "50%", left: "55%", width: 80, height: 80, borderRadius: "50%", background: "radial-gradient(circle, rgba(245,158,11,0.6) 0%, rgba(245,158,11,0.1) 60%, transparent 100%)", filter: "blur(8px)" }} />
-                <div style={{ position: "absolute", top: "20%", right: "15%", width: 60, height: 60, borderRadius: "50%", background: "radial-gradient(circle, rgba(16,185,129,0.5) 0%, transparent 80%)", filter: "blur(10px)" }} />
-                <div style={{ position: "absolute", bottom: "25%", left: "40%", width: 100, height: 100, borderRadius: "50%", background: "radial-gradient(circle, rgba(99,102,241,0.4) 0%, transparent 70%)", filter: "blur(15px)" }} />
-                <div style={{ position: "absolute", bottom: "15%", right: "30%", width: 70, height: 70, borderRadius: "50%", background: "radial-gradient(circle, rgba(239,68,68,0.3) 0%, transparent 80%)", filter: "blur(10px)", opacity: tick % 2 === 0 ? 1 : 0.7, transition: "opacity 1s ease" }} />
-
-                {/* Aisle labels */}
-                {["Aisle A", "Aisle B", "Aisle C", "Checkout"].map((a, i) => (
-                  <div key={a} style={{
-                    position: "absolute", bottom: 12, fontSize: 9, color: "rgba(59,130,246,0.6)", fontWeight: 700,
-                    left: `${14 + i * 22}%`, letterSpacing: "0.06em",
-                  }}>{a}</div>
-                ))}
-
-                {/* Legend */}
-                <div style={{ position: "absolute", top: 12, right: 12, display: "flex", flexDirection: "column", gap: 4 }}>
-                  {[{ c: "#ef4444", l: "High" }, { c: "#f59e0b", l: "Med" }, { c: "#10b981", l: "Low" }].map(({ c, l }) => (
-                    <div key={l} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      <div style={{ width: 10, height: 10, borderRadius: 3, background: c, opacity: 0.8 }} />
-                      <span style={{ fontSize: 10, color: "#4a6080" }}>{l}</span>
-                    </div>
-                  ))}
-                </div>
-
-                <div style={{ position: "absolute", bottom: 12, left: 12, fontSize: 10, color: "#2a3f60", fontFamily: "monospace" }}>
-                  {new Date().toLocaleTimeString()} • 30fps
-                </div>
-              </div>
-            </div>
-
-            {/* Alerts panel */}
-            <div style={{
-              background: "rgba(13, 21, 38, 0.7)", border: "1px solid rgba(30,45,74,0.6)",
-              borderRadius: 16, padding: 24,
-              boxShadow: "0 25px 50px rgba(0,0,0,0.2)",
-            }}>
-              <h2 style={{ fontSize: 16, fontWeight: 800, color: "#e2e8f0", marginBottom: 4 }}>System Alerts</h2>
-              <p style={{ fontSize: 11, color: "#2a3f60", marginBottom: 20 }}>Real-time event stream</p>
-
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {alertItems.map((a, i) => {
-                  const colors = {
-                    error: { bg: "rgba(244,63,94,0.08)", border: "rgba(244,63,94,0.2)", dot: "#f43f5e" },
-                    info: { bg: "rgba(59,130,246,0.08)", border: "rgba(59,130,246,0.2)", dot: "#3b82f6" },
-                    success: { bg: "rgba(16,185,129,0.08)", border: "rgba(16,185,129,0.2)", dot: "#10b981" },
-                  };
-                  const c = colors[a.type as keyof typeof colors];
-                  return (
-                    <div key={i} style={{
-                      background: c.bg, border: `1px solid ${c.border}`,
-                      borderRadius: 10, padding: "10px 12px",
-                      display: "flex", gap: 10, alignItems: "flex-start",
-                    }}>
-                      <div style={{ width: 7, height: 7, borderRadius: "50%", background: c.dot, marginTop: 4, flexShrink: 0, boxShadow: `0 0 6px ${c.dot}` }} />
-                      <div>
-                        <div style={{ fontSize: 12, color: "#c8d8f0", fontWeight: 500, lineHeight: 1.4 }}>{a.msg}</div>
-                        <div style={{ fontSize: 10, color: "#2a3f60", marginTop: 3 }}>{a.time}</div>
+          {/* Store Manager: live analytics dashboard */}
+          {isStoreManager ? (
+            <StoreManagerDashboard storeId={selectedStoreId} />
+          ) : (
+            <>
+              {/* Generic KPI Grid for other roles */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
+                {kpis.map((kpi) => (
+                  <div key={kpi.title} className="kpi-card" style={{ "--accent-gradient": kpi.accentGradient } as React.CSSProperties}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+                      <div style={{ padding: 10, background: "rgba(5,15,35,0.8)", borderRadius: 10, border: "1px solid rgba(30,45,74,0.6)" }}>
+                        {kpi.icon}
                       </div>
+                      <span style={{
+                        fontSize: 11, fontWeight: 700, padding: "3px 8px", borderRadius: 6,
+                        background: kpi.positive ? "rgba(16,185,129,0.1)" : "rgba(244,63,94,0.1)",
+                        color: kpi.positive ? "#34d399" : "#fb7185",
+                        border: `1px solid ${kpi.positive ? "rgba(16,185,129,0.25)" : "rgba(244,63,94,0.25)"}`,
+                      }}>
+                        {kpi.change}
+                      </span>
                     </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          {/* Camera status strip */}
-          <div style={{
-            background: "rgba(13, 21, 38, 0.7)", border: "1px solid rgba(30,45,74,0.6)",
-            borderRadius: 16, padding: 24,
-          }}>
-            <h2 style={{ fontSize: 16, fontWeight: 800, color: "#e2e8f0", marginBottom: 4 }}>Camera Network Status</h2>
-            <p style={{ fontSize: 11, color: "#2a3f60", marginBottom: 20 }}>Live feed overview across all registered devices</p>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 12 }}>
-              {Array.from({ length: 12 }, (_, i) => {
-                const status = i === 6 ? "offline" : i === 9 ? "maintenance" : "online";
-                const colors = { online: { bg: "rgba(16,185,129,0.08)", border: "rgba(16,185,129,0.2)", dot: "#10b981", label: "Online" }, offline: { bg: "rgba(244,63,94,0.08)", border: "rgba(244,63,94,0.25)", dot: "#f43f5e", label: "Offline" }, maintenance: { bg: "rgba(245,158,11,0.08)", border: "rgba(245,158,11,0.25)", dot: "#f59e0b", label: "Maint." } };
-                const c = colors[status];
-                return (
-                  <div key={i} style={{ background: c.bg, border: `1px solid ${c.border}`, borderRadius: 10, padding: "12px 10px", textAlign: "center" }}>
-                    <div style={{ width: 7, height: 7, borderRadius: "50%", background: c.dot, margin: "0 auto 8px", boxShadow: `0 0 6px ${c.dot}` }} />
-                    <div style={{ fontSize: 11, color: "#8ba3c7", fontWeight: 700 }}>CAM-{String(i + 1).padStart(2, "0")}</div>
-                    <div style={{ fontSize: 9, color: "#2a3f60", marginTop: 2 }}>{c.label}</div>
+                    <div style={{ fontSize: 30, fontWeight: 900, color: "#f0f4ff", letterSpacing: "-0.03em", lineHeight: 1, marginBottom: 4 }}>
+                      {kpi.value}
+                    </div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: "#8ba3c7", marginBottom: 2 }}>{kpi.title}</div>
+                    <div style={{ fontSize: 11, color: "#2a3f60" }}>{kpi.sub}</div>
                   </div>
-                );
-              })}
-            </div>
-          </div>
+                ))}
+              </div>
+
+              {/* Camera Grid for non-manager roles */}
+              <div style={{ background: "rgba(13, 21, 38, 0.7)", border: "1px solid rgba(30,45,74,0.6)", borderRadius: 16, padding: 24 }}>
+                <h2 style={{ fontSize: 16, fontWeight: 800, color: "#e2e8f0", marginBottom: 4 }}>Camera Network Status</h2>
+                <p style={{ fontSize: 11, color: "#2a3f60", marginBottom: 20 }}>Live feed overview across all registered devices</p>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 12 }}>
+                  {Array.from({ length: 12 }, (_, i) => {
+                    const status = i === 6 ? "offline" : i === 9 ? "maintenance" : "online";
+                    const colors = {
+                      online: { bg: "rgba(16,185,129,0.08)", border: "rgba(16,185,129,0.2)", dot: "#10b981", label: "Online" },
+                      offline: { bg: "rgba(244,63,94,0.08)", border: "rgba(244,63,94,0.25)", dot: "#f43f5e", label: "Offline" },
+                      maintenance: { bg: "rgba(245,158,11,0.08)", border: "rgba(245,158,11,0.25)", dot: "#f59e0b", label: "Maint." }
+                    };
+                    const c = colors[status];
+                    return (
+                      <div key={i} style={{ background: c.bg, border: `1px solid ${c.border}`, borderRadius: 10, padding: "12px 10px", textAlign: "center" }}>
+                        <div style={{ width: 7, height: 7, borderRadius: "50%", background: c.dot, margin: "0 auto 8px", boxShadow: `0 0 6px ${c.dot}` }} />
+                        <div style={{ fontSize: 11, color: "#8ba3c7", fontWeight: 700 }}>CAM-{String(i + 1).padStart(2, "0")}</div>
+                        <div style={{ fontSize: 9, color: "#2a3f60", marginTop: 2 }}>{c.label}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </>
+          )}
 
         </main>
       </div>

@@ -33,6 +33,7 @@ function getLinks(role: string): NavItem[] {
     case ROLES.STORE_MANAGER: return [...base,
       { label: "Stores", path: ROUTES.STORES, icon: icons.stores },
       { label: "Cameras", path: ROUTES.CAMERAS, icon: icons.cameras },
+      { label: "Analytics", path: ROUTES.ANALYTICS, icon: icons.analytics },
       { label: "Reports", path: ROUTES.REPORTS, icon: icons.reports },
     ];
     case ROLES.RETAIL_ANALYST: return [...base,

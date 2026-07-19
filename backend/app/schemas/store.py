@@ -3,6 +3,8 @@ from pydantic import BaseModel, ConfigDict, model_validator
 from app.schemas.zone import ZoneResponse
 
 
+from datetime import datetime
+
 class StoreBase(BaseModel):
     name: str
     location: str
@@ -33,11 +35,12 @@ class StoreUpdate(BaseModel):
     metadata: Optional[dict] = None
 
 
-class StoreResponse(BaseModel):
+class StoreResponse(StoreBase):
     model_config = ConfigDict(from_attributes=True)
 
-    layout_id: str
-    name: str
+    id: str
+    created_at: datetime
+    layout_id: Optional[str] = None
     zones: List[ZoneResponse] = []
 
     @model_validator(mode="before")
@@ -45,10 +48,21 @@ class StoreResponse(BaseModel):
     def map_fields(cls, v: Any) -> Any:
         if hasattr(v, "id"):
             return {
+                "id": v.id,
                 "layout_id": v.id,
                 "name": v.name,
+                "location": v.location,
+                "address": v.address,
+                "city": v.city,
+                "country": v.country,
+                "store_type": v.store_type,
+                "floor_plan_url": v.floor_plan_url,
+                "total_area_sqft": v.total_area_sqft,
+                "is_active": v.is_active,
+                "metadata": getattr(v, "store_metadata", None),
+                "created_at": v.created_at,
                 "zones": getattr(v, "zones", [])
             }
         if isinstance(v, dict) and "id" in v and "layout_id" not in v:
-            v["layout_id"] = v.pop("id")
+            v["layout_id"] = v.get("id")
         return v
