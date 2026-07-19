@@ -412,6 +412,12 @@ If you have a video file (e.g., `shop_video.mp4`), put it in the backend folder 
 cd backend
 python scripts/run_tracking.py --source "shop_video.mp4"
 ```
+if you dont want the video to appear on the screen use this command
+
+```powershell
+cd backend
+python scripts/run_tracking.py --source "shop_video.mp4" ---no-display
+```
 
 When the video window pops up, you can stop it at any time by pressing `q` on your keyboard.
 
