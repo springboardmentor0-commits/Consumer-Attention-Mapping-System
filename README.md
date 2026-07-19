@@ -170,28 +170,28 @@ Future milestones will include:
 # Milestone 1 Status
 
 ✅ Project Initialization
-
 ✅ Database Setup
-
 ✅ PostgreSQL Integration
-
 ✅ MongoDB Integration
-
 ✅ Redis Integration
-
 ✅ Authentication
-
 ✅ JWT Security
-
 ✅ Role-Based Access
-
 ✅ Store CRUD APIs
-
 ✅ Shelf CRUD APIs
-
 ✅ Camera CRUD APIs
 
-✅ OpenCV Stream Verification
+---
+
+# Milestone 2 Status
+
+✅ Video Stream Integration & OpenCV Setup
+✅ YOLOv8 Person Detection
+✅ ByteTrack Shopper Tracking
+✅ Gaze Estimation & Attention Mapping
+✅ Dwell Time Calculation
+✅ Database Tracking Session Saving
+✅ Real-time Analytics Dashboard
 
 ---
 
@@ -392,36 +392,28 @@ Super Admin
 
 ---
 
-# OpenCV Stream Verification
+# Step 3: Start the AI Vision Engine
 
-To verify the video processing pipeline:
+This script captures video, tracks people using YOLOv8 & ByteTrack, evaluates where they look (gaze estimation), and calculates dwell times.
 
-Webcam
+To use your computer's webcam (Great for testing yourself): 
+Open a third terminal and run:
 
-```bash
-python scripts/verify_stream.py --source 0
+```powershell
+cd backend
+python scripts/run_tracking.py --source 0
+```
+*(The `--source 0` tells it to use your main webcam).*
+
+To use a pre-recorded shop video instead of a webcam: 
+If you have a video file (e.g., `shop_video.mp4`), put it in the backend folder and run:
+
+```powershell
+cd backend
+python scripts/run_tracking.py --source "shop_video.mp4"
 ```
 
-Video File
-
-```bash
-python scripts/verify_stream.py --source path/to/video.mp4
-```
-
-RTSP Camera
-
-```bash
-python scripts/verify_stream.py --source rtsp://username:password@camera_ip:554/stream
-```
-
-The script verifies:
-
-- Video Capture
-- Frame Processing
-- FPS Calculation
-- Timestamp Logging
-- Frame Metadata
-- Live Display
+When the video window pops up, you can stop it at any time by pressing `q` on your keyboard.
 
 ---
 
@@ -467,7 +459,7 @@ Core endpoints include:
 
 # Current Progress
 
-### Completed
+### Milestone 1 & 2 Completed
 
 - Project Initialization
 - Backend Architecture
@@ -480,7 +472,12 @@ Core endpoints include:
 - Store Management APIs
 - Shelf Management APIs
 - Camera Management APIs
-- OpenCV Stream Verification
+- Video Stream Integration
+- YOLOv8 Person Detection
+- ByteTrack Tracking
+- Attention Mapping & Gaze Estimation
+- Dwell Time Analytics
+- Real-time Frontend Dashboard
 
 ---
 
