@@ -4,7 +4,7 @@ from jose import jwt, JWTError
 
 from app.core.config import SECRET_KEY, ALGORITHM
 
-security = HTTPBearer()
+security = HTTPBearer() 
 
 
 def require_roles(*allowed_roles):
