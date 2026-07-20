@@ -179,3 +179,22 @@ def gaze_intersects_shelf(end_x, end_y, shelf_zone):
     x1, y1, x2, y2 = shelf_zone
 
     return x1 <= end_x <= x2 and y1 <= end_y <= y2
+def is_looking_at_shelf(yaw, shopper_center_x, shelf_zone):
+    """
+    Determine whether the shopper is looking towards the shelf.
+
+    Assumption:
+    - Shelf is on the right side of the frame.
+    - Positive yaw = looking right.
+    - Negative yaw = looking left.
+    """
+
+    shelf_center_x = (shelf_zone[0] + shelf_zone[2]) / 2
+
+    # Shopper is left of the shelf
+    if shopper_center_x < shelf_center_x:
+        return yaw > 15
+
+    # Shopper is right of the shelf
+    else:
+        return yaw < -15

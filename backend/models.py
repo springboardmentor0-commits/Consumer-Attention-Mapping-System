@@ -66,3 +66,20 @@ class DwellTimeRecord(Base):
     exit_time = Column(DateTime, nullable=False)
 
     total_dwell_duration = Column(Float, nullable=False)
+
+class AttentionRecord(Base):
+    __tablename__ = "attention_records"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    shopper_id = Column(Integer, nullable=False)
+
+    shelf_id = Column(String, default="Shelf Zone")
+
+    attention_start_time = Column(Float, nullable=False)
+
+    attention_end_time = Column(Float, nullable=False)
+
+    total_attention_duration = Column(Float, nullable=False)
+
+    attention_percentage = Column(Float, nullable=False)

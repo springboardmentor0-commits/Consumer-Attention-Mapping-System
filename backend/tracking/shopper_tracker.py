@@ -1,5 +1,9 @@
 import cv2
 from ultralytics import YOLO
+from datetime import datetime
+
+from database import SessionLocal
+from models import AttentionRecord
 
 from tracking.dwell_time import (
     SHELF_ZONE,
@@ -10,22 +14,20 @@ from tracking.head_pose import (
     detect_face,
     estimate_head_pose,
     get_head_angles,
-    get_gaze_endpoint
-)
-from tracking.head_pose import (
-    detect_face,
-    estimate_head_pose,
-    get_head_angles,
     get_gaze_endpoint,
-    gaze_intersects_shelf
+    is_looking_at_shelf
 )
 # Load pretrained YOLOv8 model
 model = YOLO("yolov8n.pt")
-SHELF_ZONE = (500, 150, 900, 650)
+
 # Map ByteTrack IDs to clean shopper IDs
 shopper_id_map = {}
 next_shopper_id = 1
 frame_count = 0
+db = SessionLocal()
+
+attention_start_times = {}
+not_looking_frames = {}
 # Path to retail test video
 video_path = "test_videos/retail_test.mp4"
 
@@ -107,6 +109,10 @@ while cap.isOpened():
 
     pitch = yaw = roll = 0.0
     head_direction = "Unknown"
+    looking_at_shelf = False
+    attention_status = "No Face"
+    color = (0, 0, 255)
+    rotation_vector = None
 
     if face_landmarks is not None:
 
@@ -135,11 +141,20 @@ while cap.isOpened():
                 yaw,
                 pitch
 )
-            looking_at_shelf = gaze_intersects_shelf(
-                end_x,
-                end_y,
+            shopper_center_x = (x1 + x2) / 2
+
+            looking_at_shelf = is_looking_at_shelf(
+                yaw,
+                shopper_center_x,
                 SHELF_ZONE
 )
+            if looking_at_shelf:
+                attention_status = "Looking at Shelf"
+                color = (0, 255, 0)
+            else:
+                attention_status = "Not Looking"
+                color = (0, 0, 255)
+            
 
             if yaw < -15:
                 head_direction = "Left"
@@ -148,9 +163,11 @@ while cap.isOpened():
             else:
                 head_direction = "Center"
 
-            print("Pitch:", pitch, type(pitch))
-            print("Yaw:", yaw, type(yaw))
-            print("Roll:", roll, type(roll))
+            print(
+                f"Pitch:{pitch:.2f} "
+                f"Yaw:{yaw:.2f} "
+                f"Roll:{roll:.2f}"
+)
     else:
         print("❌ Face not detected")
 
@@ -171,10 +188,13 @@ while cap.isOpened():
 
     clean_id = shopper_id_map[track_id]
 
+    # Current timestamp for this frame
+    current_time = frame_count / fps
+
     label = (
         f"Shopper #{clean_id} | "
         f"{head_direction}"
-    )
+)
 
     print(f"Tracking Shopper #{clean_id}")
 
@@ -199,12 +219,55 @@ while cap.isOpened():
         2
 )
     if looking_at_shelf:
+
         attention_status = "Looking at Shelf"
         color = (0, 255, 0)
+
+        # Reset counter
+        not_looking_frames[clean_id] = 0
+
+        # Start timer only once
+        if clean_id not in attention_start_times:
+            attention_start_times[clean_id] = current_time
+
     else:
+
         attention_status = "Not Looking"
         color = (0, 0, 255)
 
+        # Increase consecutive "not looking" frames
+        not_looking_frames[clean_id] = (
+            not_looking_frames.get(clean_id, 0) + 1
+    )
+
+        # End attention only after 5 consecutive frames
+        if (
+            not_looking_frames[clean_id] >= 5
+            and clean_id in attention_start_times
+    ):
+
+            start_time = attention_start_times.pop(clean_id)
+
+            duration = current_time - start_time
+
+            if duration >= 0.5:
+
+                attention_record = AttentionRecord(
+                    shopper_id=clean_id,
+                    shelf_id="Shelf Zone",
+                    attention_start_time=start_time,
+                    attention_end_time=current_time,
+                    total_attention_duration=duration,
+                    attention_percentage=0.0
+            )
+
+            db.add(attention_record)
+            db.commit()
+
+            print(
+                f"Saved Attention: Shopper #{clean_id}"
+                f" | {duration:.2f} sec"
+            )
     cv2.putText(
         annotated_frame,
         attention_status,
@@ -261,7 +324,7 @@ while cap.isOpened():
     # Press Q to stop
     if cv2.waitKey(1) & 0xFF == ord("q"):
         break
-
+db.close()
 cap.release()
 out.release()
 cv2.destroyAllWindows()

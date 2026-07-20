@@ -1,10 +1,10 @@
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, Depends, HTTPException
-from sqlalchemy import text
+from sqlalchemy import text,func
 from sqlalchemy.orm import Session
 
 from database import engine, get_db, Base
-from models import User, Role, Store, Shelf
+from models import User, Role, Store, Shelf, AttentionRecord
 from schemas import UserRegister, UserLogin, StoreCreate, ShelfCreate
 from auth import hash_password, verify_password, create_access_token
 
@@ -199,3 +199,60 @@ def get_shelves(
         }
         for shelf in shelves
     ]
+@app.get("/attention-records")
+def get_attention_records(
+    db: Session = Depends(get_db)
+):
+    records = db.query(AttentionRecord).all()
+
+    return [
+        {
+            "id": record.id,
+            "shopper_id": record.shopper_id,
+            "shelf_id": record.shelf_id,
+            "attention_start_time": record.attention_start_time,
+            "attention_end_time": record.attention_end_time,
+            "total_attention_duration": record.total_attention_duration,
+            "attention_percentage": record.attention_percentage
+        }
+        for record in records
+    ]
+@app.get("/dashboard-summary")
+def dashboard_summary(
+    db: Session = Depends(get_db)
+):
+    total_records = db.query(AttentionRecord).count()
+
+    avg_attention = (
+        db.query(func.avg(AttentionRecord.total_attention_duration))
+        .scalar()
+    )
+
+    max_attention = (
+        db.query(func.max(AttentionRecord.total_attention_duration))
+        .scalar()
+    )
+
+    return {
+        "total_records": total_records,
+        "average_attention": avg_attention,
+        "maximum_attention": max_attention
+    }
+@app.get("/top-shopper")
+def get_top_shopper(
+    db: Session = Depends(get_db)
+):
+    top_record = (
+        db.query(AttentionRecord)
+        .order_by(AttentionRecord.total_attention_duration.desc())
+        .first()
+    )
+
+    if not top_record:
+        return {"message": "No attention records found"}
+
+    return {
+        "shopper_id": top_record.shopper_id,
+        "attention_duration": top_record.total_attention_duration,
+        "shelf_id": top_record.shelf_id
+    }
