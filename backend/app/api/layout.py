@@ -117,6 +117,23 @@ def list_stores(
         ) for store in stores
     ]
 
+@router.get("/stores/{store_id}", response_model=StoreListItem)
+def get_store(
+    store_id: uuid.UUID,
+    session: Session = Depends(get_session),
+    current_user = Depends(get_current_user)
+):
+    store = session.get(Store, store_id)
+    if not store:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Store not found")
+    return StoreListItem(
+        id=store.id,
+        name=store.name,
+        location=store.location,
+        created_at=store.created_at
+    )
+
+
 @router.post("/stores", response_model=StoreLayoutResponse, status_code=status.HTTP_201_CREATED)
 def create_store(
     payload: StoreCreateRequest,
