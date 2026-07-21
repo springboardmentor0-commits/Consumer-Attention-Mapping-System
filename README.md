@@ -179,8 +179,9 @@ python backend/scripts/verify_stream.py --source data/sample_retail.mp4 --headle
 | `POST` | `/api/video/process-video` | Upload & process video stream | Yes |
 | `GET` | `/api/video/stream/{camera_id}` | Live video feed stream | Yes |
 
----
 
+
+MILESTONE -1 Completed	
 ## 📄 License
 
 This project is intended for educational, research, and retail analytics evaluation purposes.
