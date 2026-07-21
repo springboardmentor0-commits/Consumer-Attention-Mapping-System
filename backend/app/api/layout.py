@@ -133,6 +133,42 @@ def get_store(
         created_at=store.created_at
     )
 
+@router.get("/stores/{store_id}/layout", response_model=StoreLayoutResponse)
+def get_store_layout(
+    store_id: uuid.UUID,
+    session: Session = Depends(get_session),
+    current_user = Depends(get_current_user)
+):
+    store = session.get(Store, store_id)
+    if not store:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Store not found")
+
+    zones_list = []
+    for zone in store.zones:
+        zones_list.append(
+            ZoneResponse(
+                zone_id=zone.id,
+                name=zone.zone_name,
+                coordinates=zone.coordinates
+            )
+        )
+    if not zones_list:
+        for shelf in store.shelves:
+            zones_list.append(
+                ZoneResponse(
+                    zone_id=shelf.id,
+                    name=shelf.shelf_name,
+                    coordinates=shelf.zone_coordinates
+                )
+            )
+
+    return StoreLayoutResponse(
+        layout_id=store.id,
+        name=store.name,
+        zones=zones_list
+    )
+
+
 
 @router.post("/stores", response_model=StoreLayoutResponse, status_code=status.HTTP_201_CREATED)
 def create_store(

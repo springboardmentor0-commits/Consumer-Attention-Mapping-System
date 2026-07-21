@@ -8,6 +8,7 @@ from typing import Literal
 from app.core.db import get_session
 from app.models.schemas import User, Role
 from app.core.security import hash_password, verify_password, create_access_token
+from app.core.deps import get_current_user
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -94,3 +95,36 @@ def login_for_access_token(
         access_token=access_token,
         token_type="bearer"
     )
+
+@router.get("/me", response_model=UserResponse)
+def get_current_user_profile(
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session)
+):
+    role = session.get(Role, current_user.role_id)
+    return UserResponse(
+        id=current_user.id,
+        email=current_user.email,
+        role=role.name if role else "User",
+        is_active=current_user.is_active
+    )
+
+@router.get("/users", response_model=list[UserResponse])
+def list_users(
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user)
+):
+    users = session.exec(select(User)).all()
+    result = []
+    for user in users:
+        role = session.get(Role, user.role_id)
+        result.append(
+            UserResponse(
+                id=user.id,
+                email=user.email,
+                role=role.name if role else "User",
+                is_active=user.is_active
+            )
+        )
+    return result
+
