@@ -37,7 +37,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Basic route protection check
   useEffect(() => {
-    const isPublicRoute = pathname === "/login"
+    const publicRoutes = ["/login", "/register"]
+    const isPublicRoute = publicRoutes.includes(pathname)
     if (!token && !isPublicRoute) {
       router.push("/login")
     }
