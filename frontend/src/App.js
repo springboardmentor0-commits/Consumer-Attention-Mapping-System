@@ -6,6 +6,8 @@ import Login from "./Login";
 import Register from "./Register";
 import AddStore from "./AddStore";
 import AddShelf from "./AddShelf";
+import AnalyticsDashboard from "./components/AnalyticsDashboard";
+
 
 function App(){
 
@@ -124,6 +126,10 @@ Manage stores and shelf zones
 
 <AddShelf/>
 
+</div>
+
+<div >
+    <AnalyticsDashboard/>
 </div>
 
 </div>

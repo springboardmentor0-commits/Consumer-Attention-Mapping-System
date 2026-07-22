@@ -2,6 +2,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
+from sqlalchemy import func
+from models import ShelfAnalytics
+from datetime import datetime
 
 from database import engine, get_db
 from models import Base, User, Role, Store, Shelf
@@ -177,3 +180,68 @@ def get_shelves(
     shelves = db.query(Shelf).all()
 
     return shelves
+
+@app.get("/analytics/attention")
+def get_attention_analytics(db: Session = Depends(get_db)):
+
+    analytics = (
+        db.query(
+            ShelfAnalytics.shelf_name,
+            func.sum(ShelfAnalytics.attention_time).label("total_attention")
+        )
+        .group_by(ShelfAnalytics.shelf_name)
+        .all()
+    )
+
+    return [
+        {
+            "shelf_name": row.shelf_name,
+            "total_attention": round(row.total_attention, 2)
+        }
+        for row in analytics
+    ]
+
+@app.get("/analytics/summary")
+def get_dashboard_summary(db: Session = Depends(get_db)):
+
+    # Total unique shoppers
+    total_shoppers = db.query(
+        func.count(func.distinct(ShelfAnalytics.shopper_id))
+    ).scalar()
+
+    # Total attention time
+    total_attention = db.query(
+        func.sum(ShelfAnalytics.attention_time)
+    ).scalar()
+
+    # Average attention time
+    average_attention = db.query(
+        func.avg(ShelfAnalytics.attention_time)
+    ).scalar()
+
+    # Shelf with highest attention
+    top_shelf = (
+        db.query(
+            ShelfAnalytics.shelf_name,
+            func.sum(ShelfAnalytics.attention_time).label("attention")
+        )
+        .group_by(ShelfAnalytics.shelf_name)
+        .order_by(func.sum(ShelfAnalytics.attention_time).desc())
+        .first()
+    )
+
+    return {
+        "total_shoppers": total_shoppers or 0,
+        "total_attention": round(total_attention or 0, 2),
+        "average_attention": round(average_attention or 0, 2),
+        "top_shelf": top_shelf.shelf_name if top_shelf else "--"
+    }
+@app.get("/analytics/live")
+def get_live_status():
+
+    return {
+        "active_shoppers": 3,
+        "camera_status": "Online",
+        "system_status": "Running",
+        "last_update": datetime.now().strftime("%I:%M:%S %p")
+    }

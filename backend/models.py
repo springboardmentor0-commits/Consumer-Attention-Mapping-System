@@ -1,5 +1,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Float, DateTime
 from database import Base
+from datetime import datetime
 
 
 class Role(Base):
@@ -41,3 +43,36 @@ class Shelf(Base):
     zone_name = Column(String)
 
     zone_coordinates = Column(String)
+
+class AttentionLog(Base):
+
+    __tablename__ = "attention_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    shopper_id = Column(Integer)
+
+    store_id = Column(Integer)
+
+    shelf_id = Column(Integer)
+
+    entry_time = Column(DateTime)
+
+    exit_time = Column(DateTime)
+
+    dwell_time = Column(Float)
+
+class ShelfAnalytics(Base):
+    __tablename__ = "shelf_analytics"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    shopper_id = Column(Integer)
+
+    shelf_id = Column(Integer, ForeignKey("shelves.id"))
+
+    shelf_name = Column(String)
+
+    attention_time = Column(Float)
+
+    created_at = Column(DateTime, default=datetime.utcnow)

@@ -8,25 +8,37 @@ function AddStore() {
 
     const handleSubmit = async () => {
 
-        try {
+    try {
 
-            await axios.post(
-                "http://127.0.0.1:8000/stores",
-                {
-                    store_name: storeName,
-                    location: location
+        const token = localStorage.getItem("token");
+
+        await axios.post(
+            "http://127.0.0.1:8000/stores",
+            {
+                store_name: storeName,
+                location: location
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
                 }
-            );
+            }
+        );
 
-            alert("Store added successfully");
+        alert("Store added successfully");
 
-        } catch (error) {
+        setStoreName("");
+        setLocation("");
 
-            alert("Error creating store");
+    } catch (error) {
 
-        }
+        console.log(error.response);
 
-    };
+        alert("Error creating store");
+
+    }
+
+};
 
     return(
 
@@ -38,12 +50,16 @@ function AddStore() {
 <input
 type="text"
 placeholder="Store Name"
+value={storeName}
 onChange={(e)=>setStoreName(e.target.value)}
 />
 
 <input
 type="text"
 placeholder="Location"
+value={
+location
+}
 onChange={(e)=>setLocation(e.target.value)}
 />
 
