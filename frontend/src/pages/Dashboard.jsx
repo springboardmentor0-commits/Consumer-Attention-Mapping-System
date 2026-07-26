@@ -80,6 +80,13 @@ function Dashboard() {
 
     fetchSummary();
     fetchSessions();
+
+    const interval = setInterval(() => {
+      fetchSummary();
+      fetchSessions();
+    }, 3000);
+
+    return () => clearInterval(interval);
   }, [navigate]);
 
   const fetchSummary = async () => {
@@ -106,27 +113,18 @@ function Dashboard() {
     }
   };
 
-  const runAIAnalysis = async () => {
-    try {
-      setRunningAI(true);
+  const runAIAnalysis = () => {
+    setRunningAI(true);
 
-      await axios.post("http://127.0.0.1:8000/analytics/run");
-
-      const interval = setInterval(() => {
-        fetchSummary();
-        fetchSessions();
-      }, 3000);
-
-      setTimeout(() => {
-        clearInterval(interval);
-
-        setRunningAI(false);
-      }, 35000);
-    } catch (error) {
+    axios.post("http://127.0.0.1:8000/analytics/run").catch((error) => {
       console.log(error);
-
       setRunningAI(false);
-    }
+    });
+
+    // Keep button disabled while AI is expected to run
+    setTimeout(() => {
+      setRunningAI(false);
+    }, 35000);
   };
 
   const handleLogout = () => {

@@ -9,13 +9,10 @@ class HeadPoseEstimator:
         model_path = os.path.join(
             os.path.dirname(os.path.dirname(__file__)),
             "models",
-            "6DRepNet_300W_LP_AFLW2000.pth"
+            "6DRepNet_300W_LP_AFLW2000.pth",
         )
 
-        self.model = SixDRepNet(
-            gpu_id=-1,
-            dict_path=model_path
-        )
+        self.model = SixDRepNet(gpu_id=-1, dict_path=model_path)
 
     def estimate(self, face):
 
@@ -33,16 +30,25 @@ class HeadPoseEstimator:
             return None, None, None
 
     @staticmethod
-    def get_direction(yaw):
+    def get_direction(pitch, yaw):
 
-        if yaw is None:
+        if pitch is None or yaw is None:
             return "NO FACE"
 
-        if yaw < -15:
+        # Looking down (phone, basket, lower shelf)
+        if pitch <= -35:
+            return "DOWN"
+
+        # Looking up
+        if pitch >= 35:
+            return "UP"
+
+        # Looking left/right
+        if yaw <= -30:
             return "LEFT"
 
-        elif yaw > 15:
+        elif yaw >= 30:
             return "RIGHT"
 
-        else:
-            return "CENTER"
+        # Looking straight
+        return "CENTER"

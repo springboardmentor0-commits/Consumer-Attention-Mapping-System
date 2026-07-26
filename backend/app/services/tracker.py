@@ -13,7 +13,7 @@ shelf_mapper = ShelfMapper()
 attention_tracker = AttentionTracker()
 analytics = AnalyticsService()
 
-video_path = "app/services/videos/shopping1.mp4"
+video_path = "app/services/videos/shopping2.mp4"
 cap = cv2.VideoCapture(video_path)
 
 if not cap.isOpened():
@@ -35,19 +35,55 @@ while True:
         persist=True,
         tracker="app/services/my_bytetrack.yaml",
         classes=[0],
-        conf=0.45,
-        iou=0.5,
-        verbose=False
+        conf=0.30,
+        iou=0.45,
+        verbose=False,
     )
 
     annotated_frame = frame.copy()
+
+    # ----------------------------
+    # Draw Shelf Zones
+    # ----------------------------
+
+    frame_width = annotated_frame.shape[1]
+    frame_height = annotated_frame.shape[0]
+
+    zone_width = frame_width // 3
+
+    cv2.putText(
+        annotated_frame,
+        "ZONE A",
+        (40, 35),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.9,
+        (0, 255, 255),
+        3,
+    )
+
+    cv2.putText(
+        annotated_frame,
+        "ZONE B",
+        (zone_width + 40, 35),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.9,
+        (0, 255, 255),
+        3,
+    )
+
+    cv2.putText(
+        annotated_frame,
+        "ZONE C",
+        (zone_width * 2 + 40, 35),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.9,
+        (0, 255, 255),
+        3,
+    )
+
     track_ids = set()
 
-    if (
-        results
-        and results[0].boxes is not None
-        and results[0].boxes.id is not None
-    ):
+    if results and results[0].boxes is not None and results[0].boxes.id is not None:
 
         boxes = results[0].boxes
 
@@ -61,38 +97,59 @@ while True:
             if width < 25 or height < 60:
                 continue
 
-            track_id = int(boxes.id[i].cpu().item())
+            # ----------------------------
+            # ByteTrack ID
+            # ----------------------------
+
+            bytetrack_id = int(boxes.id[i].cpu().item())
+
+            person_crop = frame[y1:y2, x1:x2]
+
+            if person_crop.size == 0:
+                continue
+
+            track_id = bytetrack_id
+
             track_ids.add(track_id)
 
-            cv2.rectangle(
-                annotated_frame,
-                (x1, y1),
-                (x2, y2),
-                (0, 255, 0),
-                2
-            )
+            # ----------------------------
+            # Draw Bounding Box
+            # ----------------------------
+
+            cv2.rectangle(annotated_frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
             dwell = dwell_tracker.dwell_times.get(track_id, 0)
 
-            # Crop upper portion of the person (head + shoulders)
-            head_roi = frame[y1:y1 + int((y2 - y1) * 0.4), x1:x2]
+            # ----------------------------
+            # Head Pose
+            # ----------------------------
 
-            direction = "NO FACE"
-            attention_zone = "Unknown"
+            head_roi = frame[y1 : y1 + int((y2 - y1) * 0.4), x1:x2]
+
+            direction = "DOWN"
+            attention_zone = "None"
 
             if head_roi.size != 0:
+
                 pitch, yaw, roll = head_pose.estimate(head_roi)
-                direction = head_pose.get_direction(yaw)
+                if pitch is not None and yaw is not None:
+                    print(f"ID {track_id} | Pitch: {pitch:.2f} | Yaw: {yaw:.2f}")
+
+                direction = head_pose.get_direction(pitch, yaw)
+
                 person_x = (x1 + x2) // 2
 
                 current_zone = shelf_mapper.get_current_zone(person_x)
 
                 attention_zone = shelf_mapper.get_attention_zone(
-                    current_zone,
-                    direction
+                    current_zone, direction
                 )
-                attention_tracker.update(track_id,attention_zone,current_video_time)
-                #print(f"Yaw: {yaw}, Direction: {direction}")
+
+                attention_tracker.update(track_id, attention_zone, current_video_time)
+
+            # ----------------------------
+            # Labels
+            # ----------------------------
 
             cv2.putText(
                 annotated_frame,
@@ -101,7 +158,7 @@ while True:
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.6,
                 (255, 255, 0),
-                2
+                2,
             )
 
             cv2.putText(
@@ -111,18 +168,19 @@ while True:
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.6,
                 (0, 255, 0),
-                2
+                2,
             )
 
             cv2.putText(
-                 annotated_frame,
-                 direction,
-                 (x1, y2 + 20),
-                 cv2.FONT_HERSHEY_SIMPLEX,
-                 0.6,
-                 (0, 0, 255),
-                 2
+                annotated_frame,
+                direction,
+                (x1, y2 + 20),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.6,
+                (0, 0, 255),
+                2,
             )
+
             cv2.putText(
                 annotated_frame,
                 f"Viewing: {attention_zone}",
@@ -130,22 +188,16 @@ while True:
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.55,
                 (255, 0, 255),
-                2
+                2,
             )
 
-
-    finished_sessions = dwell_tracker.update(
-        track_ids,
-        current_video_time
-    )
-    #print("Active IDs:", track_ids)
-    #print("Finished Sessions:", finished_sessions)
+    finished_sessions = dwell_tracker.update(track_ids, current_video_time)
+    # print("Active IDs:", track_ids)
+    # print("Finished Sessions:", finished_sessions)
 
     for session in finished_sessions:
 
-        zone_times = attention_tracker.finish_session(
-            session["track_id"]
-        )
+        zone_times = attention_tracker.finish_session(session["track_id"])
 
         print("\n========== SHOPPER SESSION ==========")
         print(f"Shopper ID : {session['track_id']}")
@@ -158,25 +210,27 @@ while True:
             for zone, seconds in zone_times.items():
                 print(f"{zone} : {seconds:.2f} sec")
 
-            most_viewed = max(
-                zone_times,
-                key=zone_times.get
-            )
+            # Ignore "None" while selecting the most viewed shelf
+            valid_zones = {
+                zone: seconds for zone, seconds in zone_times.items() if zone != "None"
+            }
 
-            print(f"\nMost Viewed : {most_viewed}")
+        if valid_zones:
+            most_viewed = max(valid_zones, key=valid_zones.get)
+        else:
+            most_viewed = "No shelf viewed"
+
+        print(f"\nMost Viewed : {most_viewed}")
 
         print("=====================================")
 
         analytics.save_session(
             shopper_id=session["track_id"],
             dwell_time=session["dwell_time"],
-            zone_times=zone_times if zone_times else {}
+            zone_times=zone_times if zone_times else {},
         )
 
-    cv2.imshow(
-        "Consumer Attention Mapping System",
-        annotated_frame
-    )
+    cv2.imshow("Consumer Attention Mapping System", annotated_frame)
 
     if cv2.waitKey(1) & 0xFF == ord("q"):
         break
@@ -189,16 +243,11 @@ while True:
 
 current_video_time = cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0
 
-finished_sessions = dwell_tracker.update(
-    [],
-    current_video_time + 5
-)
+finished_sessions = dwell_tracker.update([], current_video_time + 5)
 
 for session in finished_sessions:
 
-    zone_times = attention_tracker.finish_session(
-        session["track_id"]
-    )
+    zone_times = attention_tracker.finish_session(session["track_id"])
 
     print("\n========== SHOPPER SESSION ==========")
     print(f"Shopper ID : {session['track_id']}")
@@ -211,10 +260,15 @@ for session in finished_sessions:
         for zone, seconds in zone_times.items():
             print(f"{zone} : {seconds:.2f} sec")
 
-        most_viewed = max(
-            zone_times,
-            key=zone_times.get
-        )
+        # Ignore "None" while selecting the most viewed shelf
+        valid_zones = {
+            zone: seconds for zone, seconds in zone_times.items() if zone != "None"
+        }
+
+        if valid_zones:
+            most_viewed = max(valid_zones, key=valid_zones.get)
+        else:
+            most_viewed = "No shelf viewed"
 
         print(f"\nMost Viewed : {most_viewed}")
 
@@ -223,7 +277,7 @@ for session in finished_sessions:
     analytics.save_session(
         shopper_id=session["track_id"],
         dwell_time=session["dwell_time"],
-        zone_times=zone_times if zone_times else {}
+        zone_times=zone_times if zone_times else {},
     )
 
 cap.release()

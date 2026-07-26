@@ -4,11 +4,7 @@ class ShelfMapper:
 
         self.frame_width = frame_width
 
-        self.zones = [
-            ("Zone A", 0, 300),
-            ("Zone B", 300, 600),
-            ("Zone C", 600, 900)
-        ]
+        self.zones = [("Zone A", 0, 300), ("Zone B", 300, 600), ("Zone C", 600, 900)]
 
     def get_current_zone(self, person_x):
 
@@ -19,6 +15,14 @@ class ShelfMapper:
         return "Unknown"
 
     def get_attention_zone(self, current_zone, direction):
+
+        # Looking down -> not viewing any shelf
+        if direction == "DOWN":
+            return "None"
+
+        # Looking upward (optional)
+        if direction == "UP":
+            return "None"
 
         if current_zone == "Zone A":
 
