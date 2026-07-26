@@ -176,3 +176,23 @@ export async function deleteShelf(
 
   return response.json();
 }
+
+export async function getAnalyticsSummary(token: string) {
+  const response = await fetch(`${API_BASE_URL}/analytics/summary`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  return response.json();
+}
+
+export async function getAnalytics(token: string) {
+  const response = await fetch(`${API_BASE_URL}/analytics/`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  return response.json();
+}

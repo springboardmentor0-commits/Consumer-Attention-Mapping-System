@@ -16,6 +16,7 @@ frontend/.next/
 
 # Claude
 .claude/
+claude.md
 
 # OS
 .DS_Store

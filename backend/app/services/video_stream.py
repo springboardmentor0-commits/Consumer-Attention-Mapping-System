@@ -6,6 +6,11 @@ import psutil
 from app.services.vision.tracker import PersonTracker
 from app.services.vision.dwell import DwellTimeTracker
 from app.services.vision.shelf_mapper import ShelfMapper
+from app.services.vision.gaze import GazeEstimator
+from app.services.vision.attention import AttentionEngine
+from datetime import datetime
+from app.core.database import SessionLocal
+from app.crud.analytics import create_session
 
 
 def start_video_stream(source):
@@ -14,6 +19,8 @@ def start_video_stream(source):
 
     tracker = PersonTracker()
     dwell_tracker = DwellTimeTracker()
+    gaze_estimator = GazeEstimator()
+    attention_engine = AttentionEngine()
 
     shelf_mapper = None
 
@@ -58,6 +65,8 @@ def start_video_stream(source):
         results = tracker.track(frame)
 
         tracked_ids = []
+        frame_regions = {}
+        frame_focuses = {}
 
         for result in results:
 
@@ -76,6 +85,78 @@ def start_video_stream(source):
                 else:
                     person_id = -1
 
+                # ----------------------------------------
+                # Shelf Mapping
+                # ----------------------------------------
+
+                center_x = (x1 + x2) // 2
+                bottom_y = y2
+
+                shelf = shelf_mapper.get_shelf(center_x, bottom_y)
+
+                # ----------------------------------------
+                # Face Crop (Upper 40% of Person)
+                # -------------------------------- --------
+
+                person_crop = frame[
+                    max(0, y1): max(0, y1 + int((y2 - y1) * 0.4)),
+                    max(0, x1): min(frame.shape[1], x2)
+                ]
+
+                gaze = gaze_estimator.process(person_crop)
+
+                if gaze["face_found"]:
+                    attention = attention_engine.get_attention(
+                        gaze["direction"]
+                    )
+                else:
+                    attention = "Unknown"
+
+                if person_id != -1:
+                    frame_regions[person_id] = shelf
+                    frame_focuses[person_id] = (
+                        attention if gaze["face_found"] else None
+                    )
+
+                # ----------------------------------------
+                # Draw Face Mesh
+                # ----------------------------------------
+
+                if gaze["face_found"]:
+
+                    gaze_estimator.draw_landmarks(
+                        person_crop,
+                        gaze["landmarks"]
+                    )
+
+                    gaze_estimator.draw_keypoints(
+                        person_crop,
+                        gaze["image_points"]
+                    )
+
+                    frame[
+                        max(0, y1): max(0, y1 + int((y2 - y1) * 0.4)),
+                        max(0, x1): min(frame.shape[1], x2)
+                    ] = person_crop
+
+                # ----------------------------------------
+                # Label
+                # ----------------------------------------
+                label = f"ID {person_id}"
+
+                if shelf:
+                    label += f"\nRegion : {shelf}"
+
+                if gaze["face_found"]:
+                    label += f"\nLooking : {gaze['direction']}"
+                    label += f"\nFocus : {attention}"
+
+                # label += f"\nConf : {confidence:.2f}"
+                                
+                # ----------------------------------------
+                # Draw Bounding Box
+                # ----------------------------------------
+
                 cv2.rectangle(
                     frame,
                     (x1, y1),
@@ -84,23 +165,32 @@ def start_video_stream(source):
                     2,
                 )
 
-                cv2.putText(
-                    frame,
-                    f"ID {person_id} ({confidence:.2f})",
-                    (x1, y1 - 10),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    0.6,
-                    (0, 255, 0),
-                    2,
-                )
+                lines = label.split("\n")
 
+                for i, line in enumerate(lines):
+
+                    cv2.putText(
+                        frame,
+                        line,
+                        (x1, y1 - 10 - (20 * (len(lines) - i - 1))),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        0.55,
+                        (0, 255, 0),
+                        2,
+                    )
         # --------------------------------------------------
         # Dwell Time
         # --------------------------------------------------
 
-        completed_sessions = dwell_tracker.update(tracked_ids)
+        completed_sessions = dwell_tracker.update(
+            tracked_ids,
+            regions=frame_regions,
+            focuses=frame_focuses,
+        )
 
         if completed_sessions:
+
+            db = SessionLocal()
 
             print("\n" + "=" * 60)
 
@@ -110,6 +200,21 @@ def start_video_stream(source):
                     f"Shopper {session['person_id']} stayed "
                     f"{session['dwell_time']} seconds."
                 )
+
+                create_session(
+                    db,
+                    {
+                        "shopper_id": session["person_id"],
+                        "region": session["region"],
+                        "focus": session["focus"],
+                        "dwell_time": session["dwell_time"],
+                        "entry_time": datetime.fromtimestamp(session["entry_time"]),
+                        "exit_time": datetime.fromtimestamp(session["exit_time"]),
+                        "timestamp": datetime.now(),
+                    },
+                )
+
+            db.close()
 
             print("=" * 60 + "\n")
 
@@ -209,6 +314,7 @@ def start_video_stream(source):
 
         
         display_frame = cv2.resize(frame, (960, 540))
+
         cv2.imshow("Consumer Attention Mapping", display_frame)
 
         if cv2.waitKey(1) & 0xFF == ord("q"):

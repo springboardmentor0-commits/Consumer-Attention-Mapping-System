@@ -2,12 +2,18 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { getStores, getShelves } from "@/lib/api";
+import {
+  getStores,
+  getShelves,
+  getAnalyticsSummary,
+  getAnalytics,
+} from "@/lib/api";
 import PageHeader from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
 import { Card } from "@/components/ui/Card";
 import { RoleBadge } from "@/components/RoleBadge";
 import { OverviewItem } from "@/components/OverviewItem";
+import { DisplayAttentionChart } from "@/components/DisplayAttentionChart";
 import {
   Store,
   LayoutGrid,
@@ -15,7 +21,10 @@ import {
   Mail,
   ShieldCheck,
   Camera,
-  Activity,
+  Users,
+  Clock,
+  PanelLeft,
+  PanelRight,
 } from "lucide-react";
 
 type StoreRecord = {
@@ -24,11 +33,38 @@ type StoreRecord = {
   location: string;
 };
 
+type AnalyticsSummary = {
+  total_shoppers: number;
+  average_dwell_time: number;
+  left_display_views: number;
+  right_display_views: number;
+};
+
+type AnalyticsSession = {
+  id: number;
+  shopper_id: number;
+  region: string;
+  focus: string;
+  dwell_time: number;
+  entry_time: string;
+  exit_time: string;
+  timestamp: string;
+};
+
 export default function DashboardPage() {
   const [storeCount, setStoreCount] = useState(0);
   const [shelfCount, setShelfCount] = useState<number | null>(null);
   const [role, setRole] = useState("");
   const [email, setEmail] = useState("");
+  const [analytics, setAnalytics] = useState<AnalyticsSummary>({
+    total_shoppers: 0,
+    average_dwell_time: 0,
+    left_display_views: 0,
+    right_display_views: 0,
+  });
+  const [sessions, setSessions] = useState<AnalyticsSession[]>([]);
+  const [analyticsLoading, setAnalyticsLoading] = useState(true);
+  const [analyticsError, setAnalyticsError] = useState(false);
 
   useEffect(() => {
     setRole(localStorage.getItem("role") || "");
@@ -62,8 +98,29 @@ export default function DashboardPage() {
 
           setShelfCount(total);
         }
+
+        try {
+          const summary = await getAnalyticsSummary(token);
+
+          setAnalytics({
+            total_shoppers: summary?.total_shoppers ?? 0,
+            average_dwell_time: summary?.average_dwell_time ?? 0,
+            left_display_views: summary?.left_display_views ?? 0,
+            right_display_views: summary?.right_display_views ?? 0,
+          });
+
+          const allSessions = await getAnalytics(token);
+
+          setSessions(Array.isArray(allSessions) ? allSessions.slice(-5).reverse() : []);
+        } catch (error) {
+          console.error(error);
+          setAnalyticsError(true);
+        } finally {
+          setAnalyticsLoading(false);
+        }
       } catch (error) {
         console.error(error);
+        setAnalyticsLoading(false);
       }
     }
 
@@ -133,12 +190,6 @@ export default function DashboardPage() {
           />
 
           <OverviewItem
-            label="Retail Analytics"
-            value="Coming Soon"
-            icon={Activity}
-          />
-
-          <OverviewItem
             label="Camera Integration"
             value="Not Configured"
             icon={Camera}
@@ -151,6 +202,91 @@ export default function DashboardPage() {
           />
         </div>
       </Card>
+
+      <h2 className="mt-8 mb-4 text-base font-semibold text-slate-900">
+        Retail Analytics
+      </h2>
+
+      {analyticsLoading ? (
+        <Card className="p-6 text-sm text-slate-500">Loading analytics…</Card>
+      ) : analyticsError ? (
+        <Card className="p-6 text-sm text-red-600">
+          Failed to load analytics data.
+        </Card>
+      ) : (
+        <>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <StatCard
+              label="Total Shoppers"
+              value={analytics.total_shoppers}
+              icon={Users}
+            />
+
+            <StatCard
+              label="Average Dwell Time"
+              value={`${analytics.average_dwell_time.toFixed(2)} sec`}
+              icon={Clock}
+            />
+
+            <StatCard
+              label="Left Display Views"
+              value={analytics.left_display_views}
+              icon={PanelLeft}
+            />
+
+            <StatCard
+              label="Right Display Views"
+              value={analytics.right_display_views}
+              icon={PanelRight}
+            />
+          </div>
+
+          <div className="mt-6">
+            <DisplayAttentionChart
+              leftDisplayViews={analytics.left_display_views}
+              rightDisplayViews={analytics.right_display_views}
+            />
+          </div>
+
+          <Card className="mt-6 p-6">
+            <h2 className="mb-5 text-base font-semibold text-slate-900">
+              Recent Sessions
+            </h2>
+
+            {sessions.length === 0 ? (
+              <p className="text-sm text-slate-500">No sessions recorded yet.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-200 text-slate-500">
+                      <th className="py-2 pr-4 font-medium">Shopper ID</th>
+                      <th className="py-2 pr-4 font-medium">Dwell Time</th>
+                      <th className="py-2 pr-4 font-medium">Region</th>
+                      <th className="py-2 pr-4 font-medium">Focus</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sessions.map((session) => (
+                      <tr
+                        key={session.id}
+                        className="border-b border-slate-100 text-slate-700 last:border-0"
+                      >
+                        <td className="py-2 pr-4">{session.shopper_id}</td>
+                        <td className="py-2 pr-4">
+                          {session.dwell_time.toFixed(2)} sec
+                        </td>
+                        <td className="py-2 pr-4">{session.region}</td>
+                        <td className="py-2 pr-4">{session.focus}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Card>
+        </>
+      )}
 
       <div className="mt-6 grid gap-5 sm:grid-cols-2">
         <Link href="/stores">

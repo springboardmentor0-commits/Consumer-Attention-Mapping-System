@@ -10,14 +10,14 @@ class ShelfMapper:
         self.frame_height = frame_height
 
         self.shelves = {
-            "Shelf A": (
+            "Left Display": (
                 0,
                 0,
                 frame_width // 3,
                 frame_height
             ),
 
-            "Shelf B": (
+            "Right Display": (
                 (frame_width * 2) // 3,
                 0,
                 frame_width,
