@@ -1,0 +1,6 @@
+import os
+
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:admin123@localhost:5432/retail_db")
+SECRET_KEY = os.getenv("SECRET_KEY", "SUPER_SECRET_RETAIL_KEY_9921_ATTENTION_MAPPING")
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
