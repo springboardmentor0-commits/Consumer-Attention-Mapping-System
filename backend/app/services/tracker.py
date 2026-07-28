@@ -5,6 +5,7 @@ from app.services.shelf_mapper import ShelfMapper
 from app.services.dwell_time import DwellTimeTracker
 from app.services.attention_tracker import AttentionTracker
 from app.services.analytics_service import AnalyticsService
+from app.services.reid import ReIDManager
 
 model = YOLO("yolov8n.pt")
 dwell_tracker = DwellTimeTracker()
@@ -12,13 +13,16 @@ head_pose = HeadPoseEstimator()
 shelf_mapper = ShelfMapper()
 attention_tracker = AttentionTracker()
 analytics = AnalyticsService()
+reid = ReIDManager(similarity_threshold=0.78)
 
-video_path = "app/services/videos/shopping2.mp4"
+video_path = "app/services/videos/shopping3.mp4"
 cap = cv2.VideoCapture(video_path)
 
 if not cap.isOpened():
     print("Unable to open video.")
     exit()
+
+previous_bytetrack_ids = set()
 
 while True:
     ret, frame = cap.read()
@@ -33,7 +37,7 @@ while True:
     results = model.track(
         frame,
         persist=True,
-        tracker="app/services/my_bytetrack.yaml",
+        tracker="app/services/my_botsort.yaml",
         classes=[0],
         conf=0.30,
         iou=0.45,
@@ -82,6 +86,7 @@ while True:
     )
 
     track_ids = set()
+    current_bytetrack_ids = set()
 
     if results and results[0].boxes is not None and results[0].boxes.id is not None:
 
@@ -94,21 +99,20 @@ while True:
             width = x2 - x1
             height = y2 - y1
 
-            if width < 25 or height < 60:
-                continue
-
             # ----------------------------
             # ByteTrack ID
             # ----------------------------
 
             bytetrack_id = int(boxes.id[i].cpu().item())
 
+            current_bytetrack_ids.add(bytetrack_id)
+
             person_crop = frame[y1:y2, x1:x2]
 
             if person_crop.size == 0:
                 continue
 
-            track_id = bytetrack_id
+            track_id = reid.get_global_id(bytetrack_id, person_crop)
 
             track_ids.add(track_id)
 
@@ -190,10 +194,11 @@ while True:
                 (255, 0, 255),
                 2,
             )
-
     finished_sessions = dwell_tracker.update(track_ids, current_video_time)
-    # print("Active IDs:", track_ids)
-    # print("Finished Sessions:", finished_sessions)
+
+    # Remove ReID mapping ONLY when shopper has actually exited
+    for session in finished_sessions:
+        reid.remove_global_id(session["track_id"])
 
     for session in finished_sessions:
 

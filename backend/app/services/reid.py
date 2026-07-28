@@ -37,6 +37,11 @@ class ReIDManager:
 
         # Global ID -> list of embeddings
         self.saved_embeddings = {}
+        # Global IDs currently visible
+        self.active_shoppers = {}
+
+        # Global IDs that disappeared
+        self.inactive_shoppers = {}
 
         self.threshold = similarity_threshold
 
@@ -66,7 +71,9 @@ class ReIDManager:
         best_global_id = None
         best_score = -1
 
-        for global_id, embeddings in self.saved_embeddings.items():
+        for global_id in self.inactive_shoppers:
+
+            embeddings = self.saved_embeddings[global_id]
 
             highest_score = -1
 
@@ -82,6 +89,8 @@ class ReIDManager:
                 best_score = highest_score
                 best_global_id = global_id
 
+            print(f"Best Match: {best_global_id}, Similarity: {best_score:.3f}")
+
         return best_global_id, best_score
 
     # -------------------------------------------------
@@ -96,11 +105,14 @@ class ReIDManager:
 
             global_id = self.byte_to_global[bytetrack_id]
 
+            # Extract latest appearance
             embedding = self.extract_embedding(person_crop)
 
+            # Save latest embedding
             self.saved_embeddings[global_id].append(embedding)
 
-            if len(self.saved_embeddings[global_id]) > 5:
+            # Keep only recent embeddings
+            if len(self.saved_embeddings[global_id]) > 20:
                 self.saved_embeddings[global_id].pop(0)
 
             return global_id
@@ -114,6 +126,11 @@ class ReIDManager:
 
             self.byte_to_global[bytetrack_id] = matched_id
 
+            self.active_shoppers[matched_id] = bytetrack_id
+
+            if matched_id in self.inactive_shoppers:
+                del self.inactive_shoppers[matched_id]
+
             self.saved_embeddings[matched_id].append(embedding)
 
             if len(self.saved_embeddings[matched_id]) > 5:
@@ -126,7 +143,11 @@ class ReIDManager:
         self.next_global_id += 1
 
         self.byte_to_global[bytetrack_id] = global_id
+
         self.saved_embeddings[global_id] = [embedding]
+
+        # Shopper is currently visible
+        self.active_shoppers[global_id] = bytetrack_id
 
         return global_id
 
@@ -134,10 +155,30 @@ class ReIDManager:
 
     def remove_bytetrack_id(self, bytetrack_id):
 
-        if bytetrack_id in self.byte_to_global:
-            del self.byte_to_global[bytetrack_id]
+        if bytetrack_id not in self.byte_to_global:
+            return
+
+        global_id = self.byte_to_global[bytetrack_id]
+
+        del self.byte_to_global[bytetrack_id]
+
+        if global_id in self.active_shoppers:
+            del self.active_shoppers[global_id]
+
+        self.inactive_shoppers[global_id] = True
 
     # -------------------------------------------------
+    def remove_global_id(self, global_id):
+
+        if global_id in self.active_shoppers:
+
+            bytetrack_id = self.active_shoppers[global_id]
+
+            self.byte_to_global.pop(bytetrack_id, None)
+
+            self.active_shoppers.pop(global_id, None)
+
+        self.inactive_shoppers[global_id] = True
 
     def clear(self):
 
