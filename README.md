@@ -1,26 +1,106 @@
-# Consumer-Attention-Mapping-System
+# Customer Attention Mapping System
 
-A Retail Intelligence System that helps analyze consumer attention in retail stores by managing store layouts, shelves, and video stream integration.
+An AI-powered retail intelligence application that analyzes shopper behavior from recorded retail videos using computer vision. The system detects shoppers, tracks them across video frames, estimates their viewing direction through head pose estimation, maps their attention to shelf zones, calculates dwell time, and stores analytics in PostgreSQL for visualization through a React dashboard.
 
----
+## Features
 
-## Tech Stack
+- Secure user authentication using JWT
+- Store and shelf management
+- Person detection using YOLOv8
+- Multi-person tracking using BoT-SORT
+- Person re-identification using OSNet (TorchReID)
+- Head pose estimation using SixDRepNet
+- Shelf attention mapping
+- Shopper dwell time analysis
+- PostgreSQL-based analytics storage
+- Interactive React dashboard for retail insights
+
+## System Pipeline
+
+```text
+Recorded Retail Video
+        │
+        ▼
+YOLOv8 Person Detection
+        │
+        ▼
+BoT-SORT Multi-Object Tracking
+        │
+        ▼
+OSNet Re-Identification
+        │
+        ▼
+Head Pose Estimation (SixDRepNet)
+        │
+        ▼
+Shelf Attention Mapping
+        │
+        ▼
+Dwell Time Tracking
+        │
+        ▼
+Analytics Generation
+        │
+        ▼
+PostgreSQL Database
+        │
+        ▼
+React Dashboard
+```
+
+## Project Structure
+
+```text
+Consumer-Attention-Mapping-System/
+│
+├── backend/
+│   ├── app/
+│   │   ├── api/
+│   │   ├── core/
+│   │   ├── models/
+│   │   ├── schemas/
+│   │   ├── services/
+│   │   ├── utils/
+│   │   └── main.py
+│   ├── requirements.txt
+│   └── seed.py
+│
+├── frontend/
+│   ├── public/
+│   ├── src/
+│   ├── package.json
+│   └── package-lock.json
+│
+└── README.md
+```
+
+## Technology Stack
 
 ### Frontend
 
 - React.js
+- Axios
+- React Router
 
 ### Backend
 
 - FastAPI
 - Python
-- OpenCV (cv2)
+- SQLAlchemy
+- JWT Authentication
+- Uvicorn
+
+### Computer Vision & AI
+
+- YOLOv8
+- BoT-SORT
+- OSNet (TorchReID)
+- SixDRepNet
+- OpenCV
 
 ### Database
 
 - PostgreSQL
-
----
 
 # Project Setup
 
@@ -117,24 +197,6 @@ http://localhost:3000
 
 ---
 
-## OpenCV Stream Verification
-
-The project includes an OpenCV verification script that supports:
-
-- Live Webcam Streaming
-- Video File Streaming
-- Frame-by-frame Processing
-- Frame Count & Timestamp Logging
-- Frame Resizing
-
-Run the script
-
-```bash
-python camera_test.py
-```
-
----
-
 ## Database Initialization
 
 After creating the database and configuring the `.env` file, run the seed script to insert the default user roles.
@@ -149,3 +211,22 @@ The script inserts the following roles:
 - Store Manager
 - Retail Analyst
 - Marketing Manager
+
+---
+
+### Future Improvements
+
+- Attention heatmaps
+- Product interaction detection
+- Customer journey analytics
+- Product attractiveness scoring
+- Retail recommendation engine
+- Multi-camera support
+- Docker deployment
+- Real-time camera support
+
+---
+
+### License
+
+This project was developed for educational and learning purposes.
