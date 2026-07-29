@@ -87,20 +87,28 @@ class PersonTracker:
             text_padding=6
         )
 
-        # Tracker stats
+        from app.services.gaze_estimator import HeadPoseEstimator, intersect_gaze_ray_with_shelves, GazeResult
+
+# Tracker stats
         self.active_ids: set = set()
         self.total_unique_shoppers: set = set()
+
+        # Head Pose Estimator instance
+        self.head_pose_estimator = HeadPoseEstimator()
+
 
     def process_frame(
         self,
         frame: np.ndarray,
-        draw_annotations: bool = True
+        draw_annotations: bool = True,
+        shelves: Optional[List[Any]] = None
     ) -> Tuple[np.ndarray, Any]:
         """
-        Process a single image frame through YOLOv8 and ByteTrack.
+        Process a single image frame through YOLOv8 and ByteTrack, estimating head pose and gaze direction.
 
         :param frame: BGR image frame (np.ndarray).
         :param draw_annotations: Whether to render bounding boxes and IDs on the frame.
+        :param shelves: Optional list of Shelf objects for gaze-to-shelf intersection.
         :return: (annotated_frame, supervision.Detections)
         """
         # Run YOLOv8 detection
@@ -130,35 +138,54 @@ class PersonTracker:
             self.active_ids = set()
 
         annotated_frame = frame.copy()
+        frame_h, frame_w = frame.shape[:2]
 
-        if draw_annotations and len(detections) > 0:
-            # Build clean label strings showing persistent Tracker ID and Confidence
+        if len(detections) > 0:
             labels = []
-            for tracker_id, confidence in zip(
+            for i, (tracker_id, confidence, bbox) in enumerate(zip(
                 detections.tracker_id if detections.tracker_id is not None else [None] * len(detections),
-                detections.confidence if detections.confidence is not None else [0.0] * len(detections)
-            ):
-                if tracker_id is not None:
-                    labels.append(f"Shopper #{tracker_id} ({confidence:.2f})")
-                else:
-                    labels.append(f"Person ({confidence:.2f})")
+                detections.confidence if detections.confidence is not None else [0.0] * len(detections),
+                detections.xyxy
+            )):
+                # Estimate head pose (pitch, yaw, roll) & gaze vector
+                gaze_res = self.head_pose_estimator.estimate_pose(frame, bbox)
 
-            # Annotate bounding boxes and text labels
-            try:
-                annotated_frame = self.box_annotator.annotate(
-                    scene=annotated_frame,
-                    detections=detections
-                )
-                annotated_frame = self.label_annotator.annotate(
-                    scene=annotated_frame,
-                    detections=detections,
-                    labels=labels
-                )
-            except Exception as e:
-                # Fallback to direct OpenCV rendering if supervision annotator fails
-                annotated_frame = self._fallback_draw(annotated_frame, detections, labels)
+                if gaze_res.detected and shelves:
+                    gaze_res = intersect_gaze_ray_with_shelves(gaze_res, shelves, (frame_w, frame_h))
+
+                # Build label text
+                base_lbl = f"Shopper #{tracker_id}" if tracker_id is not None else "Person"
+                if gaze_res.detected:
+                    gaze_text = f" | Pose P:{gaze_res.pitch}° Y:{gaze_res.yaw}°"
+                    if gaze_res.target_shelf_name:
+                        gaze_text += f" -> Looking at: {gaze_res.target_shelf_name}"
+                    labels.append(base_lbl + gaze_text)
+
+                    # Draw gaze vector ray if drawing annotations
+                    if draw_annotations and gaze_res.gaze_origin and gaze_res.gaze_end:
+                        p1 = tuple(map(int, gaze_res.gaze_origin))
+                        p2 = tuple(map(int, gaze_res.gaze_end))
+                        cv2.arrowedLine(annotated_frame, p1, p2, (0, 255, 255), 2, tipLength=0.2)
+                        cv2.circle(annotated_frame, p1, 3, (0, 0, 255), -1)
+                else:
+                    labels.append(base_lbl)
+
+            if draw_annotations:
+                try:
+                    annotated_frame = self.box_annotator.annotate(
+                        scene=annotated_frame,
+                        detections=detections
+                    )
+                    annotated_frame = self.label_annotator.annotate(
+                        scene=annotated_frame,
+                        detections=detections,
+                        labels=labels
+                    )
+                except Exception:
+                    annotated_frame = self._fallback_draw(annotated_frame, detections, labels)
 
         return annotated_frame, detections
+
 
     def _fallback_draw(
         self,
