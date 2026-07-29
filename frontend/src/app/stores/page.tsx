@@ -220,22 +220,31 @@ export default function StoresPage() {
               <TableBody>
                 {stores.map((store) => (
                   <TableRow key={store.id}>
-                    <TableCell className="font-medium">{store.name}</TableCell>
+                    <TableCell className="font-medium">
+                      <Link href={`/stores/${store.id}`} className="hover:underline text-indigo-600 dark:text-indigo-400 font-semibold">
+                        {store.name}
+                      </Link>
+                    </TableCell>
                     <TableCell>{store.location}</TableCell>
                     <TableCell>
                       {new Date(store.created_at).toLocaleDateString()}
                     </TableCell>
                     <TableCell className="text-right space-x-2">
-                      <Button variant="outline" size="sm" onClick={() => router.push(`/stores/${store.id}`)}>
-                        Manage Layout
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => router.push(`/stores/${store.id}/cameras`)}>
-                        Cameras
-                      </Button>
+                      <Link href={`/stores/${store.id}`}>
+                        <Button variant="outline" size="sm">
+                          Manage Layout
+                        </Button>
+                      </Link>
+                      <Link href={`/stores/${store.id}/cameras`}>
+                        <Button variant="outline" size="sm">
+                          Cameras
+                        </Button>
+                      </Link>
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
+
             </Table>
           </div>
         )}
