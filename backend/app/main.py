@@ -50,7 +50,17 @@ app.include_router(video.router, prefix="/api")
 
 
 
+@app.get("/")
+def root():
+    return {
+        "message": "Welcome to Consumer Attention Mapping System API",
+        "docs": "/docs",
+        "health": "/health"
+    }
+
+
 @app.get("/health", status_code=200)
 def health_check():
     return {"status": "ok"}
+
 

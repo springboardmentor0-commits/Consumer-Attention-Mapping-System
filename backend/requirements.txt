@@ -12,7 +12,6 @@ psycopg2-binary
 alembic
 email-validator
 python-multipart
-
-
-
+ultralytics
+supervision
 

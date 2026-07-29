@@ -69,3 +69,9 @@ venv.bak/
 *.njsproj
 *.sln
 *.sw?
+
+# ML Models & Weights
+*.pt
+*.onnx
+*.engine
+
