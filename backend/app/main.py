@@ -5,7 +5,7 @@ from sqlmodel import Session, select
 from app.core.config import settings
 from app.core.db import engine
 from app.models.schemas import Role
-from app.api import auth, layout, video
+from app.api import auth, layout, video, dwell, analytics
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
