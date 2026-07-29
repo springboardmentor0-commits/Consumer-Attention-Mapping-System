@@ -250,20 +250,23 @@ export default function StoreDetailPage() {
           </div>
         </div>
 
-        {error ? (
+        {error && (
           <div className="p-4 text-sm rounded bg-destructive/10 text-destructive border border-destructive/20 font-medium">
             {error}
           </div>
-        ) : loading ? (
+        )}
+
+        {/* ATTENTION ANALYTICS CHARTS & KPIS */}
+        <AttentionAnalyticsChart storeId={storeId as string} token={token || ""} />
+
+        {loading ? (
           <div className="h-64 flex items-center justify-center text-muted-foreground">
             Loading layout details...
           </div>
         ) : (
           <div className="space-y-8">
-            {/* ATTENTION ANALYTICS CHARTS & KPIS */}
-            <AttentionAnalyticsChart storeId={storeId as string} token={token || ""} />
-
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
 
             
             {/* SHELVES MANAGEMENT */}
@@ -457,5 +460,7 @@ export default function StoreDetailPage() {
     </DashboardLayout>
   )
 }
+
+
 
 
