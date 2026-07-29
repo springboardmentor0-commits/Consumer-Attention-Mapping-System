@@ -174,3 +174,42 @@ class Product(SQLModel, table=True):
     # Relationships
     store: Optional[Store] = Relationship(back_populates="products")
     shelf: Optional[Shelf] = Relationship()
+
+
+class DwellTime(SQLModel, table=True):
+    __tablename__ = "dwell_times"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    store_id: uuid.UUID = Field(
+        sa_column=Column(
+            ForeignKey("stores.id", ondelete="CASCADE"),
+            nullable=False
+        )
+    )
+    zone_id: uuid.UUID = Field(
+        sa_column=Column(
+            ForeignKey("zones.id", ondelete="CASCADE"),
+            nullable=False
+        )
+    )
+    camera_id: Optional[uuid.UUID] = Field(
+        default=None,
+        sa_column=Column(
+            ForeignKey("cameras.id", ondelete="SET NULL"),
+            nullable=True
+        )
+    )
+    shopper_id: int = Field(nullable=False, index=True)
+    entry_timestamp: datetime = Field(nullable=False, index=True)
+    exit_timestamp: datetime = Field(nullable=False)
+    dwell_duration_seconds: float = Field(nullable=False)
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        nullable=False
+    )
+
+    # Relationships
+    store: Optional[Store] = Relationship()
+    zone: Optional[Zone] = Relationship()
+    camera: Optional[Camera] = Relationship()
+
