@@ -73,88 +73,105 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex-1 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-lg border">
-        <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
-          <CardDescription>
+    <div className="min-h-screen flex-1 flex items-center justify-center p-4 bg-[#F8FAFC] dark:bg-slate-950">
+      <Card className="w-full max-w-md bg-white dark:bg-slate-900 shadow-xl shadow-slate-200/60 dark:shadow-slate-950/50 border border-slate-200/80 dark:border-slate-800 rounded-2xl overflow-hidden">
+        <CardHeader className="space-y-1.5 text-center pt-8 pb-6 px-8">
+          <CardTitle className="text-2xl font-bold font-serif text-slate-900 dark:text-slate-100">
+            Create Account
+          </CardTitle>
+          <CardDescription className="text-sm text-slate-500 dark:text-slate-400 font-sans">
             Register to access the Consumer Attention Mapping System
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 px-8 pb-6 font-sans">
             {success && (
-              <div className="p-3 text-sm rounded bg-green-500/10 text-green-600 border border-green-500/20 font-medium">
+              <div className="p-3 text-sm rounded-xl bg-green-500/10 text-green-600 border border-green-500/20 font-medium">
                 Registration successful! Redirecting to login...
               </div>
             )}
             {error && (
-              <div className="p-3 text-sm rounded bg-destructive/10 text-destructive border border-destructive/20 font-medium">
+              <div className="p-3 text-sm rounded-xl bg-destructive/10 text-destructive border border-destructive/20 font-medium">
                 {error}
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                Email
+              </Label>
               <Input
                 id="email"
                 type="email"
                 placeholder="you@company.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                className="h-10 border-slate-200 dark:border-slate-800 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/15 font-sans transition-all text-slate-900 dark:text-slate-100 placeholder:text-slate-400 rounded-xl"
                 required
                 disabled={success}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="role">Role</Label>
+              <Label htmlFor="role" className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                Role
+              </Label>
               <select
                 id="role"
                 value={roleName}
                 onChange={(e) => setRoleName(e.target.value as Role)}
                 disabled={success}
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 text-foreground"
+                className="flex h-10 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent px-3 py-1 text-sm shadow-sm transition-all focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/15 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 text-slate-900 dark:text-slate-100 font-sans"
               >
                 {ROLES.map((r) => (
-                  <option key={r} value={r} className="bg-background">
+                  <option key={r} value={r} className="bg-background text-foreground">
                     {r}
                   </option>
                 ))}
               </select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                Password
+              </Label>
               <Input
                 id="password"
                 type="password"
                 placeholder="Min. 6 characters"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                className="h-10 border-slate-200 dark:border-slate-800 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/15 font-sans transition-all text-slate-900 dark:text-slate-100 placeholder:text-slate-400 rounded-xl"
                 required
                 disabled={success}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Label htmlFor="confirmPassword" className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                Confirm Password
+              </Label>
               <Input
                 id="confirmPassword"
                 type="password"
                 placeholder="Re-enter password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+                className="h-10 border-slate-200 dark:border-slate-800 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/15 font-sans transition-all text-slate-900 dark:text-slate-100 placeholder:text-slate-400 rounded-xl"
                 required
                 disabled={success}
               />
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col gap-3">
-            <Button className="w-full" type="submit" disabled={loading || success}>
+          <CardFooter className="flex flex-col gap-4 px-8 pb-8 pt-2">
+            <Button
+              className="w-full h-10 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-semibold rounded-xl shadow-md shadow-indigo-500/20 transition-all duration-150 ease-in-out cursor-pointer"
+              type="submit"
+              disabled={loading || success}
+            >
               {loading ? "Creating account..." : "Register"}
             </Button>
-            <p className="text-sm text-muted-foreground text-center">
+            <p className="text-sm text-slate-500 dark:text-slate-400 text-center font-sans">
               Already have an account?{" "}
               <Link
                 href="/login"
-                className="text-primary font-medium underline-offset-4 hover:underline"
+                className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-semibold hover:underline transition-colors"
               >
                 Sign in
               </Link>
@@ -165,3 +182,4 @@ export default function RegisterPage() {
     </div>
   )
 }
+
