@@ -204,29 +204,30 @@ python backend/scripts/test_analytics_api.py
 | `GET` | `/api/dwell/records` | Query recorded `DwellTime` entries | Yes |
 | `GET` | `/api/analytics/attention` | Fetch aggregated shelf attention, dwell time & time-series trends | Yes |
 
+# Current Progress
+
+### Milestone 1 & 2 Completed
+
+- Project Initialization
+- Backend Architecture
+- Frontend Dashboard
+- Authentication System
+- Role-Based Access Control
+- PostgreSQL Integration
+- MongoDB Integration
+- Redis Integration
+- Store Management APIs
+- Shelf Management APIs
+- Camera Management APIs
+- Video Stream Integration
+- YOLOv8 Person Detection
+- ByteTrack Tracking
+- Attention Mapping & Gaze Estimation
+- Dwell Time Analytics
+- Real-time Frontend Dashboard
+
 ---
-Current Progress
--------
 
-Milestone 1 & 2 Completed
-Project Initialization
-Backend Architecture
-Frontend Dashboard
-Authentication System
-Role-Based Access Control
-PostgreSQL Integration
-MongoDB Integration
-Redis Integration
-Store Management APIs
-Shelf Management APIs
-Camera Management APIs
-Video Stream Integration
-YOLOv8 Person Detection
-ByteTrack Tracking
-Attention Mapping & Gaze Estimation
-Dwell Time Analytics
-Real-time Frontend Dashboard
+# License
 
-License
---------
-This project is developed for academic and research purposes as part of the Infosys Springboard program.
+This project is developed for academic and research purposes as part of the **Infosys Springboard** program.
