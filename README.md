@@ -177,11 +177,57 @@ python backend/scripts/verify_stream.py --source data/sample_retail.mp4 --headle
 | `GET / POST` | `/api/zones/{id}/shelves` | Get / Create shelf layouts | Yes |
 | `GET / POST` | `/api/shelves/{id}/products` | Get / Create products on shelf | Yes |
 | `POST` | `/api/video/process-video` | Upload & process video stream | Yes |
-| `GET` | `/api/video/stream/{camera_id}` | Live video feed stream | Yes |
+---
 
+## 🎯 Shopper Tracking & Attention Mapping Demo (YOLOv8 + ByteTrack + Gaze)
 
+An end-to-end computer vision pipeline using **YOLOv8** (`ultralytics`), **ByteTrack** (`supervision`), **MediaPipe Face Mesh**, and **TimescaleDB** for real-time shopper tracking, occlusion persistence, dwell time tracking, and gaze-to-shelf attention mapping.
 
-MILESTONE -1 Completed	
+### Required Packages
+Ensure all dependencies are installed in your virtual environment:
+```bash
+pip install ultralytics supervision mediapipe opencv-python torch sqlmodel alembic
+```
+
+### Running the Live Tracking & Attention Demo
+```bash
+# 1. Run live tracking demo on webcam (device index 0)
+python backend/scripts/track_shoppers.py --source 0
+
+# 2. Run tracking on a sample retail video file
+python backend/scripts/track_shoppers.py --source path/to/store_video.mp4
+
+# 3. Record annotated output video to file
+python backend/scripts/track_shoppers.py --source input.mp4 --output data/output_tracked.mp4
+```
+
+### Expected Output
+- **Visual Output Window**: Bounding boxes overlaid with persistent tracker IDs (`Shopper #1`, `Shopper #2`), occlusion persistence buffers, 3D head pose angles (Pitch, Yaw), directional gaze ray vectors, and targeted shelf labels (`Looking at: Shelf A`).
+- **Live Console Logs**: Real-time per-ID dwell duration accumulation logs (e.g. `ID 12 - Dwell Time: 14.5s`).
+- **TimescaleDB / PostgreSQL Persistence**: Automatically flushes and persists completed dwell sessions and gaze ray hits to the `dwell_times` and `gaze_events` hypertables.
+- **React Frontend Dashboard**: Visualizes live aggregated attention data and time-series trends at `http://localhost:3000/stores/<store_id>`.
+
+### Verification & Automated Test Suite
+```bash
+# Verify YOLOv8 model loading & basic tracking
+python backend/scripts/test_tracker.py
+
+# Verify 20-frame occlusion persistence (shopper passing behind pillars)
+python backend/scripts/test_occlusion.py
+
+# Verify zone entry/exit timestamp logging, dwell duration, re-entry & flush
+python backend/scripts/test_dwell_tracker.py
+
+# Verify head crop extraction, head pose estimation & gaze ray shelf intersection
+python backend/scripts/test_gaze_estimation.py
+
+# Verify GET /api/analytics/attention endpoint aggregation logic
+python backend/scripts/test_analytics_api.py
+```
+
+---
+
 ## 📄 License
 
 This project is intended for educational, research, and retail analytics evaluation purposes.
+

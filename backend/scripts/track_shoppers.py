@@ -19,6 +19,10 @@ if backend_dir not in sys.path:
     sys.path.insert(0, backend_dir)
 
 from app.services.person_tracker import PersonTracker
+from app.services.dwell_tracker import ShopperDwellTracker
+from app.models.schemas import Zone
+import uuid
+from datetime import datetime, timezone
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("track_shoppers")
@@ -26,7 +30,7 @@ logger = logging.getLogger("track_shoppers")
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="YOLOv8 + ByteTrack Shopper Tracking with Occlusion Resilience"
+        description="YOLOv8 + ByteTrack Shopper Tracking with Occlusion Resilience & Dwell Time Logging"
     )
     parser.add_argument(
         "-s", "--source",
@@ -103,13 +107,29 @@ def main():
         writer = cv2.VideoWriter(args.output, fourcc, fps, (width, height))
         logger.info(f"Recording output to: {args.output}")
 
-    # Initialize PersonTracker
+    # Initialize PersonTracker & ShopperDwellTracker
     tracker = PersonTracker(
         model_weights=args.weights,
         conf_threshold=args.conf,
         track_buffer=args.track_buffer,
         frame_rate=int(fps),
         device=args.device
+    )
+
+    store_id = uuid.uuid4()
+    default_zone = Zone(
+        id=uuid.uuid4(),
+        store_id=store_id,
+        zone_name="Main Shopping Floor",
+        coordinates="full_frame",
+        zone_type="floor",
+        created_at=datetime.now(timezone.utc)
+    )
+
+    dwell_tracker = ShopperDwellTracker(
+        store_id=store_id,
+        zones=[default_zone],
+        lost_track_buffer=args.track_buffer
     )
 
     frame_count = 0
@@ -123,13 +143,28 @@ def main():
                 break
 
             frame_count += 1
+            now_dt = datetime.now(timezone.utc)
 
             # Process frame through YOLOv8 + ByteTrack
             annotated_frame, detections = tracker.process_frame(frame, draw_annotations=True)
 
+            # Process dwell time & entry/exit events
+            closed_records = dwell_tracker.process_frame_detections(
+                detections=detections,
+                frame_shape=frame.shape,
+                frame_idx=frame_count,
+                timestamp=now_dt
+            )
+
+            # Log live active shopper per-ID dwell times
+            active_dwell_strs = []
+            for (shopper_id, z_id), session in dwell_tracker.active_sessions.items():
+                dwell_sec = (now_dt - session.entry_timestamp).total_seconds()
+                active_dwell_strs.append(f"ID {shopper_id} - Dwell Time: {dwell_sec:.1f}s")
+
             # Overlay HUD statistics banner
             stats = tracker.get_stats()
-            hud_text = f"Frame: {frame_count} | Active Shoppers: {stats['currently_tracked_shoppers']} | Total Unique: {stats['total_unique_shoppers_seen']}"
+            hud_text = f"Frame: {frame_count} | Active: {stats['currently_tracked_shoppers']} | Total Unique: {stats['total_unique_shoppers_seen']}"
             cv2.putText(
                 annotated_frame,
                 hud_text,
@@ -148,7 +183,6 @@ def main():
             # Display interactive output window unless --no-show is specified
             if not args.no-show:
                 cv2.imshow("Shopper Tracker - YOLOv8 + ByteTrack", annotated_frame)
-                # Press 'q' or ESC to exit cleanly
                 key = cv2.waitKey(1) & 0xFF
                 if key == ord('q') or key == 27:
                     logger.info("User interrupted stream processing ('q'/ESC pressed).")
@@ -157,18 +191,20 @@ def main():
             if frame_count % 30 == 0:
                 elapsed = time.time() - start_time
                 current_fps = frame_count / elapsed if elapsed > 0 else 0
+                dwell_log_msg = " | ".join(active_dwell_strs) if active_dwell_strs else "No active shoppers"
                 logger.info(
-                    f"Processed {frame_count} frames | FPS: {current_fps:.1f} | Active Shoppers: {stats['currently_tracked_shoppers']} | Total Unique: {stats['total_unique_shoppers_seen']}"
+                    f"Frame {frame_count} ({current_fps:.1f} FPS) -> Active Dwell Times: [ {dwell_log_msg} ]"
                 )
 
     except KeyboardInterrupt:
         logger.info("Keyboard interrupt received. Stopping tracker.")
     finally:
+        flushed = dwell_tracker.flush(flush_timestamp=datetime.now(timezone.utc))
         cap.release()
         if writer:
             writer.release()
         cv2.destroyAllWindows()
-        logger.info("Cleaned up resources and destroyed windows.")
+        logger.info(f"Cleaned up resources. Flushed {len(flushed)} completed dwell time sessions.")
 
     total_time = time.time() - start_time
     avg_fps = frame_count / total_time if total_time > 0 else 0
@@ -178,7 +214,11 @@ def main():
     logger.info(f"Total Frames Processed: {frame_count}")
     logger.info(f"Average FPS: {avg_fps:.1f}")
     logger.info(f"Total Unique Shoppers Tracked: {final_stats['total_unique_shoppers_seen']}")
+    logger.info("COMPLETED DWELL SESSIONS:")
+    for rec in dwell_tracker.completed_records:
+        logger.info(f"  • Shopper #{rec.shopper_id} -> Dwell Duration: {rec.dwell_duration_seconds}s (Entry: {rec.entry_timestamp.strftime('%H:%M:%S')} | Exit: {rec.exit_timestamp.strftime('%H:%M:%S')})")
     logger.info("=" * 60)
+
 
 
 if __name__ == "__main__":
