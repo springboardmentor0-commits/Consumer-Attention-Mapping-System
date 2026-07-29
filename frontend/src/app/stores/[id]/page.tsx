@@ -33,7 +33,10 @@ interface ZoneItem {
   created_at: string
 }
 
+import { AttentionAnalyticsChart } from "@/components/AttentionAnalyticsChart"
+
 export default function StoreDetailPage() {
+
   const { token, role } = useAuth()
   const { id: storeId } = useParams()
   const router = useRouter()
@@ -256,7 +259,12 @@ export default function StoreDetailPage() {
             Loading layout details...
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="space-y-8">
+            {/* ATTENTION ANALYTICS CHARTS & KPIS */}
+            <AttentionAnalyticsChart storeId={storeId as string} token={token || ""} />
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
             
             {/* SHELVES MANAGEMENT */}
             <div className="space-y-6">
@@ -442,10 +450,12 @@ export default function StoreDetailPage() {
                 </CardContent>
               </Card>
             </div>
-
           </div>
+        </div>
         )}
       </div>
     </DashboardLayout>
   )
 }
+
+

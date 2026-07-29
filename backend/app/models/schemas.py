@@ -213,3 +213,35 @@ class DwellTime(SQLModel, table=True):
     zone: Optional[Zone] = Relationship()
     camera: Optional[Camera] = Relationship()
 
+
+class GazeEvent(SQLModel, table=True):
+    __tablename__ = "gaze_events"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    store_id: uuid.UUID = Field(
+        sa_column=Column(
+            ForeignKey("stores.id", ondelete="CASCADE"),
+            nullable=False
+        )
+    )
+    shelf_id: uuid.UUID = Field(
+        sa_column=Column(
+            ForeignKey("shelves.id", ondelete="CASCADE"),
+            nullable=False
+        )
+    )
+    shopper_id: int = Field(nullable=False, index=True)
+    pitch: Optional[float] = Field(default=None)
+    yaw: Optional[float] = Field(default=None)
+    roll: Optional[float] = Field(default=None)
+    timestamp: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        nullable=False,
+        index=True
+    )
+
+    # Relationships
+    store: Optional[Store] = Relationship()
+    shelf: Optional[Shelf] = Relationship()
+
+

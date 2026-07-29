@@ -47,6 +47,7 @@ app.include_router(auth.router, prefix="/api")
 app.include_router(layout.router, prefix="/api")
 app.include_router(video.router, prefix="/api")
 app.include_router(dwell.router, prefix="/api")
+app.include_router(analytics.router, prefix="/api")
 
 
 
