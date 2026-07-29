@@ -2,7 +2,7 @@ import uuid
 import time
 import logging
 from datetime import datetime, timezone
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Union
 from sqlmodel import Session, select
 
 from app.core.db import engine
