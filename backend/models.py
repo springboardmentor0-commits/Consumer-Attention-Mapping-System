@@ -83,3 +83,19 @@ class AttentionRecord(Base):
     total_attention_duration = Column(Float, nullable=False)
 
     attention_percentage = Column(Float, nullable=False)
+class ShopperSession(Base):
+    __tablename__ = "shopper_sessions"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    shopper_id = Column(Integer, nullable=False)
+
+    entry_time = Column(DateTime, nullable=False)
+
+    exit_time = Column(DateTime, nullable=False)
+
+    total_dwell_time = Column(Float, nullable=False)
+
+    path_length = Column(Float, default=0)
+
+    segment = Column(String(50), default="Unknown")

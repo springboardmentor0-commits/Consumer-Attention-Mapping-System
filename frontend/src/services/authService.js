@@ -19,6 +19,11 @@ export async function loginUser(email, password) {
   }
 
   localStorage.setItem("access_token", data.access_token);
+
+  // Stored under both keys: ProtectedRoute.jsx / AdminDashboard.jsx read
+  // "role", while this previously only set "user_role" — that mismatch
+  // meant admin routes always redirected back to login.
+  localStorage.setItem("role", data.role);
   localStorage.setItem("user_role", data.role);
 
   return data;

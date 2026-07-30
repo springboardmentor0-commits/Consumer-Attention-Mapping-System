@@ -1,75 +1,119 @@
-import { useState } from "react";
+import React, { useState } from "react";
+import Sidebar from "../components/Sidebar";
+import Navbar from "../components/Navbar";
+import "../styles/store.css";
 
-function AddStore() {
-  const [storeName, setStoreName] = useState("");
-  const [location, setLocation] = useState("");
-  const [message, setMessage] = useState("");
+const AddStore = () => {
+  const [store, setStore] = useState({
+    name: "",
+    address: "",
+    city: "",
+    state: "",
+  });
 
-  const handleSubmit = async (e) => {
+  const handleChange = (e) => {
+    setStore({
+      ...store,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = (e) => {
     e.preventDefault();
 
-    try {
-      const response = await fetch(
-        "http://127.0.0.1:8000/stores",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            store_name: storeName,
-            location: location,
-          }),
-        }
-      );
+    alert("Store added successfully!");
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.detail || "Failed to add store");
-      }
-
-      setMessage("Store added successfully!");
-      setStoreName("");
-      setLocation("");
-    } catch (error) {
-      setMessage(error.message);
-    }
+    setStore({
+      name: "",
+      address: "",
+      city: "",
+      state: "",
+    });
   };
 
   return (
-    <div>
-      <h1>Add New Store</h1>
+    <div className="dashboard-container">
+      <Sidebar />
 
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Store Name"
-          value={storeName}
-          onChange={(e) => setStoreName(e.target.value)}
-          required
-        />
+      <div className="dashboard-content">
+        <Navbar />
 
-        <br /><br />
+        <div className="page-header">
+          <h2>Store Management</h2>
+          <p>Add and manage retail store information.</p>
+        </div>
 
-        <input
-          type="text"
-          placeholder="Location"
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          required
-        />
+        <div className="store-card">
+          <h4>Add New Store</h4>
 
-        <br /><br />
+          <form onSubmit={handleSubmit}>
 
-        <button type="submit">
-          Add Store
-        </button>
-      </form>
+            <div className="mb-3">
+              <label>Store Name</label>
+              <input
+                type="text"
+                className="form-control"
+                name="name"
+                value={store.name}
+                onChange={handleChange}
+                placeholder="Enter Store Name"
+                required
+              />
+            </div>
 
-      <p>{message}</p>
+            <div className="mb-3">
+              <label>Address</label>
+              <textarea
+                className="form-control"
+                rows="3"
+                name="address"
+                value={store.address}
+                onChange={handleChange}
+                placeholder="Enter Store Address"
+                required
+              />
+            </div>
+
+            <div className="row">
+
+              <div className="col-md-6 mb-3">
+                <label>City</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  name="city"
+                  value={store.city}
+                  onChange={handleChange}
+                  placeholder="City"
+                  required
+                />
+              </div>
+
+              <div className="col-md-6 mb-3">
+                <label>State</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  name="state"
+                  value={store.state}
+                  onChange={handleChange}
+                  placeholder="State"
+                  required
+                />
+              </div>
+
+            </div>
+
+            <button className="btn btn-success">
+              Save Store
+            </button>
+
+          </form>
+        </div>
+
+      </div>
     </div>
   );
-}
+};
 
 export default AddStore;

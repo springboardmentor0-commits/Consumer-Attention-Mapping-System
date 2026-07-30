@@ -1,111 +1,142 @@
-import { useEffect, useState } from "react";
+import React, { useState } from "react";
+import Sidebar from "../components/Sidebar";
+import Navbar from "../components/Navbar";
+import "../styles/shelf.css";
 
-function AddShelf() {
-  const [stores, setStores] = useState([]);
-  const [storeId, setStoreId] = useState("");
-  const [zoneName, setZoneName] = useState("");
-  const [message, setMessage] = useState("");
+const AddShelf = () => {
+  const [shelf, setShelf] = useState({
+    shelfName: "",
+    store: "",
+    location: "",
+    camera: "",
+    status: "Active",
+  });
 
-  useEffect(() => {
-    const fetchStores = async () => {
-      try {
-        const response = await fetch(
-          "http://127.0.0.1:8000/stores"
-        );
+  const handleChange = (e) => {
+    setShelf({
+      ...shelf,
+      [e.target.name]: e.target.value,
+    });
+  };
 
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error("Failed to load stores");
-        }
-
-        setStores(data);
-      } catch (error) {
-        setMessage(error.message);
-      }
-    };
-
-    fetchStores();
-  }, []);
-
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
 
-    try {
-      const response = await fetch(
-        "http://127.0.0.1:8000/shelves",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            store_id: Number(storeId),
-            zone_name: zoneName,
-          }),
-        }
-      );
+    alert("Shelf Added Successfully!");
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(
-          data.detail || "Failed to add shelf"
-        );
-      }
-
-      setMessage("Shelf added successfully!");
-      setStoreId("");
-      setZoneName("");
-    } catch (error) {
-      setMessage(error.message);
-    }
+    setShelf({
+      shelfName: "",
+      store: "",
+      location: "",
+      camera: "",
+      status: "Active",
+    });
   };
 
   return (
-    <div>
-      <h1>Add New Shelf Zone</h1>
+    <div className="dashboard-container">
+      <Sidebar />
 
-      <form onSubmit={handleSubmit}>
-        <select
-          value={storeId}
-          onChange={(e) => setStoreId(e.target.value)}
-          required
-        >
-          <option value="">
-            Select Store
-          </option>
+      <div className="dashboard-content">
+        <Navbar />
 
-          {stores.map((store) => (
-            <option
-              key={store.id}
-              value={store.id}
-            >
-              {store.store_name} - {store.location}
-            </option>
-          ))}
-        </select>
+        <div className="page-header">
+          <h2>Shelf Management</h2>
+          <p>Add and manage shelves in your retail stores.</p>
+        </div>
 
-        <br /><br />
+        <div className="store-card">
 
-        <input
-          type="text"
-          placeholder="Zone Name"
-          value={zoneName}
-          onChange={(e) => setZoneName(e.target.value)}
-          required
-        />
+          <h4>Add New Shelf</h4>
 
-        <br /><br />
+          <form onSubmit={handleSubmit}>
 
-        <button type="submit">
-          Add Shelf
-        </button>
-      </form>
+            <div className="mb-3">
+              <label>Shelf Name</label>
+              <input
+                type="text"
+                className="form-control"
+                name="shelfName"
+                value={shelf.shelfName}
+                onChange={handleChange}
+                placeholder="Enter Shelf Name"
+                required
+              />
+            </div>
 
-      <p>{message}</p>
+            <div className="row">
+
+              <div className="col-md-6 mb-3">
+                <label>Select Store</label>
+
+                <select
+                  className="form-control"
+                  name="store"
+                  value={shelf.store}
+                  onChange={handleChange}
+                >
+                  <option value="">Choose Store</option>
+                  <option>Store 1</option>
+                  <option>Store 2</option>
+                  <option>Store 3</option>
+                </select>
+              </div>
+
+              <div className="col-md-6 mb-3">
+                <label>Assign Camera</label>
+
+                <select
+                  className="form-control"
+                  name="camera"
+                  value={shelf.camera}
+                  onChange={handleChange}
+                >
+                  <option value="">Choose Camera</option>
+                  <option>Camera 1</option>
+                  <option>Camera 2</option>
+                  <option>Camera 3</option>
+                </select>
+              </div>
+
+            </div>
+
+            <div className="mb-3">
+              <label>Shelf Location</label>
+
+              <input
+                type="text"
+                className="form-control"
+                name="location"
+                value={shelf.location}
+                onChange={handleChange}
+                placeholder="Example: Aisle 5"
+              />
+            </div>
+
+            <div className="mb-4">
+              <label>Status</label>
+
+              <select
+                className="form-control"
+                name="status"
+                value={shelf.status}
+                onChange={handleChange}
+              >
+                <option>Active</option>
+                <option>Inactive</option>
+              </select>
+            </div>
+
+            <button className="btn btn-success">
+              Save Shelf
+            </button>
+
+          </form>
+
+        </div>
+      </div>
     </div>
   );
-}
+};
 
 export default AddShelf;

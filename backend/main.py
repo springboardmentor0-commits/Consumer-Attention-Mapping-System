@@ -4,7 +4,14 @@ from sqlalchemy import text,func
 from sqlalchemy.orm import Session
 
 from database import engine, get_db, Base
-from models import User, Role, Store, Shelf, AttentionRecord
+from models import (
+    User,
+    Role,
+    Store,
+    Shelf,
+    AttentionRecord,
+    ShopperSession
+)
 from schemas import UserRegister, UserLogin, StoreCreate, ShelfCreate
 from auth import hash_password, verify_password, create_access_token
 

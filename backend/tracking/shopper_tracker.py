@@ -1,9 +1,11 @@
 import cv2
+import math
 from ultralytics import YOLO
 from datetime import datetime
 
+
 from database import SessionLocal
-from models import AttentionRecord
+from models import AttentionRecord, ShopperSession
 
 from tracking.dwell_time import (
     SHELF_ZONE,
@@ -28,6 +30,11 @@ db = SessionLocal()
 
 attention_start_times = {}
 not_looking_frames = {}
+
+shopper_entry_times = {}
+shopper_last_positions = {}
+shopper_path_lengths = {}
+completed_shoppers = set()
 # Path to retail test video
 video_path = "test_videos/retail_test.mp4"
 
@@ -38,6 +45,8 @@ cap = cv2.VideoCapture(video_path)
 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 fps = cap.get(cv2.CAP_PROP_FPS)
+print(f"Video Width : {width}")
+print(f"Video Height: {height}")
 
 # Create output video writer
 fourcc = cv2.VideoWriter_fourcc(*"mp4v")
@@ -65,32 +74,30 @@ while cap.isOpened():
     verbose=False
 )
 
-    # Draw bounding boxes
-    # Copy original frame
+    #Draw bounding boxes
+    #Copy original frame
     annotated_frame = frame.copy()
 
-    # Get shelf zone coordinates
-    #zone_x1, zone_y1, zone_x2, zone_y2 = get_shelf_zone()
+    #Get shelf zone coordinates
+    zone_x1, zone_y1, zone_x2, zone_y2 = get_shelf_zone()
 
-    # Draw shelf zone rectangle
-    #cv2.rectangle(
-        #annotated_frame,
-        #(zone_x1, zone_y1),
-        #(zone_x2, zone_y2),
-        #(255, 0, 0),
-        #3
-    #)
+    cv2.rectangle(
+        annotated_frame,
+        (zone_x1, zone_y1),
+        (zone_x2, zone_y2),
+        (255, 0, 0),
+        3
+)
 
-    # Add shelf zone label
-    #cv2.putText(
-        #annotated_frame,
-        #"Shelf Zone",
-        #(zone_x1, max(zone_y1 - 10, 30)),
-        #cv2.FONT_HERSHEY_SIMPLEX,
-        #0.8,
-        #(255, 0, 0),
-        #2
-    #)
+    cv2.putText(
+        annotated_frame,
+        "Shelf Zone",
+        (zone_x1, max(zone_y1 - 10, 30)),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.8,
+        (255, 0, 0),
+        2
+)
 
     result = results[0]
     # Check whether tracking IDs exist
@@ -187,6 +194,40 @@ while cap.isOpened():
         next_shopper_id += 1
 
     clean_id = shopper_id_map[track_id]
+    
+    # Shopper center coordinates
+    center_x = (x1 + x2) / 2
+    center_y = (y1 + y2) / 2
+
+    # Save entry time only once
+    if clean_id not in shopper_entry_times:
+        shopper_entry_times[clean_id] = datetime.now()
+
+    # Initialize path length
+    if clean_id not in shopper_path_lengths:
+        shopper_path_lengths[clean_id] = 0.0
+
+    # Calculate distance traveled
+    if clean_id in shopper_last_positions:
+        last_x, last_y = shopper_last_positions[clean_id]
+
+        distance = math.sqrt(
+            (center_x - last_x) ** 2 +
+            (center_y - last_y) ** 2
+    )
+
+        shopper_path_lengths[clean_id] += distance
+
+    # Update latest position
+    shopper_last_positions[clean_id] = (center_x, center_y)
+    
+    # Update dwell time
+    update_dwell_time(
+        clean_id,
+        (x1, y1, x2, y2)
+)
+
+    
 
     # Current timestamp for this frame
     current_time = frame_count / fps
@@ -261,8 +302,8 @@ while cap.isOpened():
                     attention_percentage=0.0
             )
 
-            db.add(attention_record)
-            db.commit()
+                db.add(attention_record)
+                db.commit()
 
             print(
                 f"Saved Attention: Shopper #{clean_id}"
