@@ -4,9 +4,9 @@ import numpy as np
 from typing import Dict, Any, Tuple
 from ultralytics import YOLO
 
-import mediapipe as mp
+# Convenience alias for MediaPipe Face Mesh solution
+from mediapipe.solutions import face_mesh as mp_face_mesh # type: ignore
 
-mp_face_mesh = mp.solutions.face_mesh  # type: ignore
 # Spatial parameters database mockup
 SPATIAL_PARAMS_DB: Dict[int, Dict[str, Any]] = {
     101: {
@@ -121,8 +121,8 @@ def process_video_stream(video_source: Any = 0):
                 )
 
         # Run MediaPipe Face Mesh on RGB frame
-        mesh_results = face_mesh.process(rgb_frame)
-        if mesh_results.multi_face_landmarks:
+        mesh_results: Any = face_mesh.process(rgb_frame)
+        if mesh_results is not None and getattr(mesh_results, "multi_face_landmarks", None):
             for face_landmarks in mesh_results.multi_face_landmarks:
                 pitch, yaw = estimate_head_pose(face_landmarks.landmark, w, h)
                 if pitch is not None and yaw is not None:
