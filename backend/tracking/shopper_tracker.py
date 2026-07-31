@@ -7,11 +7,13 @@ from datetime import datetime
 from database import SessionLocal
 from models import AttentionRecord, ShopperSession
 
+
 from tracking.dwell_time import (
     SHELF_ZONE,
     get_shelf_zone,
     update_dwell_time
 )
+from tracking.heatmap import add_heatmap_point, generate_heatmap
 from tracking.head_pose import (
     detect_face,
     estimate_head_pose,
@@ -40,6 +42,7 @@ video_path = "test_videos/retail_test.mp4"
 
 # Open video
 cap = cv2.VideoCapture(video_path)
+last_frame = None
 
 # Get original video properties
 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -60,6 +63,8 @@ out = cv2.VideoWriter(
 
 while cap.isOpened():
     success, frame = cap.read()
+    if success:
+        last_frame = frame.copy()
 
     if not success:
         break
@@ -197,7 +202,14 @@ while cap.isOpened():
     
     # Shopper center coordinates
     center_x = (x1 + x2) / 2
-    center_y = (y1 + y2) / 2
+    center_y = (y1 + y2) / 2 
+    
+    
+    # Store point for heatmap generation
+    add_heatmap_point(
+        int(center_x),
+        int(center_y)
+)
 
     # Save entry time only once
     if clean_id not in shopper_entry_times:
@@ -368,6 +380,11 @@ while cap.isOpened():
 db.close()
 cap.release()
 out.release()
+
+# Generate final heatmap
+if last_frame is not None:
+    generate_heatmap(last_frame, "heatmap.png")
+    print("Heatmap saved as heatmap.png")
 cv2.destroyAllWindows()
 
 print("Tracked output video saved successfully!")

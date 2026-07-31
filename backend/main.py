@@ -14,7 +14,8 @@ from models import (
 )
 from schemas import UserRegister, UserLogin, StoreCreate, ShelfCreate
 from auth import hash_password, verify_password, create_access_token
-
+from fastapi.responses import FileResponse
+import os
 # Create all database tables
 Base.metadata.create_all(bind=engine)
 
@@ -263,3 +264,19 @@ def get_top_shopper(
         "attention_duration": top_record.total_attention_duration,
         "shelf_id": top_record.shelf_id
     }
+@app.get("/api/heatmaps/store")
+def get_store_heatmap():
+
+    heatmap_path = "heatmap.png"
+
+    if not os.path.exists(heatmap_path):
+        raise HTTPException(
+            status_code=404,
+            detail="Heatmap not found"
+        )
+
+    return FileResponse(
+        heatmap_path,
+        media_type="image/png",
+        
+    )
