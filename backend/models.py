@@ -66,3 +66,5 @@ class TrackingSession(Base):
     exit_time = Column(DateTime)
 
     dwell_duration = Column(Float)
+
+    segment = Column(String)

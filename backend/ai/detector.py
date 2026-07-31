@@ -8,7 +8,7 @@ import supervision as sv
 import cv2
 import time
 
-
+from ai.heatmap import HeatmapGenerator
 
 from database import SessionLocal
 from models import TrackingSession
@@ -34,16 +34,22 @@ label_annotator = sv.LabelAnnotator()
 
 video_path = "videos/vtest.avi"
 cap = cv2.VideoCapture(video_path)
+
+heatmap = None
+
 # Shelf zones
 SHELF_A_X = None
 
 while cap.isOpened():
 
     success, frame = cap.read()
-    
     if not success:
         break
-
+    if heatmap is None:
+        heatmap = HeatmapGenerator(
+            frame.shape[1],
+            frame.shape[0]
+        )
     if SHELF_A_X is None:
         SHELF_A_X = frame.shape[1] // 2
 
@@ -65,7 +71,8 @@ while cap.isOpened():
     left_ids = active_ids - current_ids
 
     for tracker_id in left_ids:
-
+        if tracker_id not in entry_times:
+            continue
         entry = datetime.fromtimestamp(entry_times[tracker_id])
         exit_time = datetime.now()
 
@@ -99,6 +106,11 @@ while cap.isOpened():
         x1, y1, x2, y2 = detections.xyxy[i]
 
         center_x = (x1 + x2) / 2
+        center_y = (y1 + y2) / 2
+        heatmap.add_point(
+            center_x,
+            center_y
+        )
 
         if center_x < SHELF_A_X:
             shelf = "Shelf A"
@@ -153,6 +165,18 @@ while cap.isOpened():
     )
 
     cv2.imshow("Consumer Tracking", annotated_frame)
+
+    heatmap_image = heatmap.generate(frame)
+
+# Save the latest heatmap image
+    cv2.imwrite(
+        "heatmaps/store_heatmap.jpg",
+        heatmap_image
+    )
+    cv2.imshow(
+        "Store Heatmap",
+        heatmap_image
+    )
 
     if cv2.waitKey(1) & 0xFF == ord("q"):
         break

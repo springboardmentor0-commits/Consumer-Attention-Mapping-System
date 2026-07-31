@@ -105,3 +105,26 @@ tbody tr:hover {
   font-size: 2rem;
   font-weight: 600;
 }
+
+.heatmap-card {
+    margin-top: 35px;
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.heatmap-card h2 {
+    margin-bottom: 10px;
+}
+
+.heatmap-description {
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.heatmap-image {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+}

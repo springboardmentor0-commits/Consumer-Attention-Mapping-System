@@ -1,5 +1,6 @@
 import Navbar from "./components/Navbar";
 import SummaryCards from "./components/SummaryCards";
+import HeatmapCard from "./components/HeatmapCard";
 import { useEffect, useState } from "react";
 import "./App.css";
 
@@ -53,6 +54,7 @@ function App() {
           ))}
         </tbody>
       </table>
+      <HeatmapCard />
     </div>
   );
 }
