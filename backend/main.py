@@ -16,6 +16,8 @@ from schemas import UserRegister, UserLogin, StoreCreate, ShelfCreate
 from auth import hash_password, verify_password, create_access_token
 from fastapi.responses import FileResponse
 import os
+from scoring import calculate_attractiveness_score
+from sqlalchemy import func
 # Create all database tables
 Base.metadata.create_all(bind=engine)
 
@@ -280,3 +282,38 @@ def get_store_heatmap():
         media_type="image/png",
         
     )
+@app.get("/api/product-score")
+def product_score(db: Session = Depends(get_db)):
+
+    total_attention = (
+        db.query(
+            func.sum(
+                AttentionRecord.total_attention_duration
+            )
+        ).scalar() or 0
+    )
+
+    interaction_frequency = (
+        db.query(AttentionRecord).count()
+    )
+
+    score = calculate_attractiveness_score(
+        attention_duration=total_attention,
+        interaction_frequency=interaction_frequency,
+
+        pickup_rate=0,
+        conversion_rate=0,
+        repeat_engagement=0,
+
+        store_average_attention=50,
+        store_average_interaction=10,
+        store_average_pickup=10,
+        store_average_conversion=10,
+        store_average_repeat=10
+    )
+
+    return {
+        "total_attention": total_attention,
+        "interaction_frequency": interaction_frequency,
+        "attractiveness_score": score
+    }
