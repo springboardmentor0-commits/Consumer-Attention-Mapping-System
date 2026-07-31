@@ -18,6 +18,7 @@ from fastapi.responses import FileResponse
 import os
 from scoring import calculate_attractiveness_score
 from sqlalchemy import func
+from recommendation import generate_recommendation
 # Create all database tables
 Base.metadata.create_all(bind=engine)
 
@@ -312,8 +313,16 @@ def product_score(db: Session = Depends(get_db)):
         store_average_repeat=10
     )
 
+    recommendation = generate_recommendation(
+        attention_duration=total_attention,
+        pickup_rate=0,
+        conversion_rate=0,
+        attractiveness_score=score
+    )
+
     return {
         "total_attention": total_attention,
         "interaction_frequency": interaction_frequency,
-        "attractiveness_score": score
-    }
+        "attractiveness_score": score,
+        "recommendation": recommendation
+}
