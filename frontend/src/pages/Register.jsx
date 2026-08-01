@@ -41,7 +41,7 @@ function Register() {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [roleId, setRoleId] = useState("2");
+    const [roleId, setRoleId] = useState("1");
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
@@ -190,19 +190,15 @@ function Register() {
                                 <SelectContent>
 
                                     <SelectItem value="1">
-                                        Admin
+                                        SuperAdmin
                                     </SelectItem>
 
                                     <SelectItem value="2">
-                                        Store Manager
+                                        StoreManager
                                     </SelectItem>
 
                                     <SelectItem value="3">
-                                        Retail Analyst
-                                    </SelectItem>
-
-                                    <SelectItem value="4">
-                                        Marketing Manager
+                                        Analyst
                                     </SelectItem>
 
                                 </SelectContent>

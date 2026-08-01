@@ -133,6 +133,23 @@ export default function Dashboard() {
 
                     </div>
 
+                    <div className="dashboard-card">
+
+                        <h3>Analytics</h3>
+
+                        <p>
+                            View real-time consumer attention and heatmap metrics.
+                        </p>
+
+                        <Button
+                            className="dashboard-button"
+                            onClick={() => navigate("/analytics")}
+                        >
+                            View Analytics
+                        </Button>
+
+                    </div>
+
                 </div>
 
             </main>

@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
+import AnalyticsDashboard from "./pages/AnalyticsDashboard";
 
 import AddStore from "./pages/AddStore";
 import ViewStore from "./pages/ViewStore";
@@ -29,6 +30,11 @@ function App() {
             <Route
                 path="/dashboard"
                 element={<Dashboard />}
+            />
+
+            <Route
+                path="/analytics"
+                element={<AnalyticsDashboard />}
             />
 
             {/* Store */}
