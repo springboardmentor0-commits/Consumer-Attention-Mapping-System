@@ -7,6 +7,10 @@ from database import SessionLocal
 from models import TrackingSession
 from ai.behavior import classify_shopper
 
+from ai.attractiveness import generate_product_metrics
+
+from ai.recommendations import generate_recommendation
+
 router = APIRouter(
     prefix="/analytics",
     tags=["Attention Analytics"]
@@ -80,3 +84,33 @@ def get_heatmap():
         "heatmaps/store_heatmap.jpg",
         media_type="image/jpeg"
     )
+
+@router.get("/product-scores")
+def get_product_scores(db: Session = Depends(get_db)):
+
+    sessions = db.query(TrackingSession).all()
+
+    product_scores = []
+
+    for session in sessions:
+
+        metrics = generate_product_metrics(
+            session.dwell_duration
+        )
+
+        recommendation = generate_recommendation(
+            attractiveness_score=metrics["attractiveness_score"],
+            attention_duration=metrics["attention_duration"],
+            pickup_rate=metrics["pickup_rate"],
+            conversion_rate=metrics["conversion_rate"],
+            repeat_engagement=metrics["repeat_engagement"]
+        )
+
+        product_scores.append({
+            "tracker_id": session.tracker_id,
+            "shelf_id": session.shelf_id,
+            **metrics,
+            "recommendation": recommendation
+        })
+
+    return product_scores

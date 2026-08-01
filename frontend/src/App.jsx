@@ -1,3 +1,4 @@
+import RecommendationsCard from "./components/RecommendationsCard";
 import Navbar from "./components/Navbar";
 import SummaryCards from "./components/SummaryCards";
 import HeatmapCard from "./components/HeatmapCard";
@@ -55,6 +56,7 @@ function App() {
         </tbody>
       </table>
       <HeatmapCard />
+      <RecommendationsCard />
     </div>
   );
 }
