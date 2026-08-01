@@ -1,17 +1,16 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.database import Base, engine
-from app.api import auth, stores, analytics
+from app.api import auth, stores, analytics, intelligence
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Consumer Attention Mapping System",
-    description="Milestone 2 - Consumer Detection & Attention Analysis",
-    version="0.2.0",
+    description="Milestone 3 - Behavioral Intelligence & Optimization",
+    version="0.3.0",
 )
 
-# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000"],
@@ -23,6 +22,7 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(stores.router)
 app.include_router(analytics.router)
+app.include_router(intelligence.router)
 
 
 @app.get("/")

@@ -87,4 +87,4 @@ def run_tracker(source=0):
 
 
 if __name__ == "__main__":
-    run_tracker(0)  # 0 for webcam
+    run_tracker("test_video.mp4")
