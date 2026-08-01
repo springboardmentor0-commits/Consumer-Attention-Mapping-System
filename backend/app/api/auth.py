@@ -13,7 +13,7 @@ from app.models.database_models import (
     RoleModel,
 )
 
-from app.models.user import (
+from app.schemas.user import (
     UserRegisterRequest,
     UserLoginRequest,
     TokenResponse,

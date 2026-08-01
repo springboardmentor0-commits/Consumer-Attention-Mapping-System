@@ -14,7 +14,7 @@ from app.models.database_models import (
     StoreModel,
 )
 
-from app.models.shelf import (
+from app.schemas.shelf import (
     ShelfCreate,
     ShelfResponse,
 )

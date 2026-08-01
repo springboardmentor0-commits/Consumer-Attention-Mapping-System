@@ -1,8 +1,16 @@
-from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy import (
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    JSON,
+    text,
+)
 from sqlalchemy.orm import relationship
-
 from app.core.database import Base
-
 
 # =====================================================
 # Constants
@@ -12,7 +20,6 @@ ROLE_NAME_LENGTH = 50
 STORE_NAME_LENGTH = 150
 LOCATION_LENGTH = 255
 SHELF_NAME_LENGTH = 100
-ZONE_COORDINATES_LENGTH = 50
 EMAIL_LENGTH = 255
 PASSWORD_HASH_LENGTH = 255
 
@@ -23,7 +30,7 @@ PASSWORD_HASH_LENGTH = 255
 
 class RoleModel(Base):
     """
-    Represents an application role.
+    Application Roles.
     """
 
     __tablename__ = "roles"
@@ -35,6 +42,8 @@ class RoleModel(Base):
         unique=True,
         nullable=False,
     )
+    
+    description = Column(Text, nullable=True) # <-- Added missing column
 
     users = relationship(
         "UserModel",
@@ -48,12 +57,16 @@ class RoleModel(Base):
 
 class StoreModel(Base):
     """
-    Represents a physical retail store.
+    Retail Store.
     """
 
     __tablename__ = "stores"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True,
+    )
 
     store_name = Column(
         String(STORE_NAME_LENGTH),
@@ -71,6 +84,12 @@ class StoreModel(Base):
         cascade="all, delete-orphan",
     )
 
+    attention_sessions = relationship(
+        "AttentionSessionModel",
+        back_populates="store",
+        cascade="all, delete-orphan",
+    )
+
 
 # =====================================================
 # Shelves Table
@@ -78,12 +97,16 @@ class StoreModel(Base):
 
 class ShelfModel(Base):
     """
-    Represents a shelf inside a store.
+    Shelf Layout.
     """
 
     __tablename__ = "shelves"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True,
+    )
 
     store_id = Column(
         Integer,
@@ -92,6 +115,7 @@ class ShelfModel(Base):
             ondelete="CASCADE",
         ),
         nullable=False,
+        index=True,
     )
 
     shelf_name = Column(
@@ -99,14 +123,20 @@ class ShelfModel(Base):
         nullable=False,
     )
 
+    # Use JSON / JSONB type to match SQL schema
     zone_coordinates = Column(
-        String(ZONE_COORDINATES_LENGTH),
+        JSON,
         nullable=False,
     )
 
     store = relationship(
         "StoreModel",
         back_populates="shelves",
+    )
+
+    attention_sessions = relationship(
+        "AttentionSessionModel",
+        back_populates="shelf",
     )
 
 
@@ -116,12 +146,16 @@ class ShelfModel(Base):
 
 class UserModel(Base):
     """
-    Represents an application user.
+    System User.
     """
 
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True,
+    )
 
     email = Column(
         String(EMAIL_LENGTH),
@@ -147,4 +181,83 @@ class UserModel(Base):
     role = relationship(
         "RoleModel",
         back_populates="users",
+    )
+
+
+# =====================================================
+# Attention Sessions Table
+# =====================================================
+
+class AttentionSessionModel(Base):
+    """
+    Stores one completed shopper attention session.
+    """
+
+    __tablename__ = "attention_sessions"
+
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True,
+    )
+
+    tracker_id = Column(
+        Integer,
+        nullable=False,
+        index=True,
+    )
+
+    store_id = Column(
+        Integer,
+        ForeignKey(
+            "stores.id",
+            ondelete="SET NULL",
+        ),
+        nullable=False,
+        index=True,
+    )
+
+    shelf_id = Column(
+        Integer,
+        ForeignKey(
+            "shelves.id",
+            ondelete="SET NULL",
+        ),
+        nullable=True,
+        index=True,
+    )
+
+    entry_time = Column(
+        DateTime,
+        nullable=False,
+        index=True,
+    )
+
+    exit_time = Column(
+        DateTime,
+        nullable=False,
+        index=True,
+    )
+
+    dwell_time_seconds = Column(
+        Float,
+        nullable=False,
+    )
+
+    created_at = Column(
+        DateTime,
+        nullable=False,
+        server_default=text("CURRENT_TIMESTAMP"),
+    )
+
+    store = relationship(
+        "StoreModel",
+        back_populates="attention_sessions",
+        lazy="joined",
+    )
+
+    shelf = relationship(
+        "ShelfModel",
+        back_populates="attention_sessions",
+        lazy="joined",
     )

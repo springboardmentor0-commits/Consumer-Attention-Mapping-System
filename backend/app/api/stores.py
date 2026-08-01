@@ -10,7 +10,7 @@ from app.core.security import (
 )
 
 from app.models.database_models import StoreModel
-from app.models.store import (
+from app.schemas.store import (
     StoreCreate,
     StoreResponse,
 )

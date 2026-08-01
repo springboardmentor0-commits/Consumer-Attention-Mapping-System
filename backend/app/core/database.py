@@ -1,59 +1,38 @@
+from typing import Generator
 from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
+
+from app.core.config import settings
 
 
-from sqlalchemy import text
+class Base(DeclarativeBase):
+    pass
 
-
-
-# ==========================================================
-# PostgreSQL Connection
-# ==========================================================
-
-DATABASE_URL = "postgresql://postgres:suyash@localhost:5432/consumer_mapping"
-
-# ==========================================================
-# SQLAlchemy Engine
-# ==========================================================
 
 engine = create_engine(
-    DATABASE_URL,
+    settings.DATABASE_URL,  # e.g., "postgresql://user:pass@localhost/dbname"
     pool_pre_ping=True,
+    pool_size=10,
+    max_overflow=20,
 )
 
-
-
-
-with engine.connect() as conn:
-    print(conn.execute(text("SELECT current_database();")).scalar())
-    print(conn.execute(text("SELECT inet_server_addr();")).scalar())
-    print(conn.execute(text("SELECT inet_server_port();")).scalar())
-    print(conn.execute(text("SELECT version();")).scalar())
-# ==========================================================
-# Session Factory
-# ==========================================================
-
-SessionLocal = sessionmaker(
+SessionFactory = sessionmaker(
     autocommit=False,
     autoflush=False,
     bind=engine,
 )
 
-# ==========================================================
-# Base Class
-# ==========================================================
 
-Base = declarative_base()
-
-# ==========================================================
-# Database Dependency
-# ==========================================================
-
-def get_db():
-    db = SessionLocal()
-
+def get_db() -> Generator[Session, None, None]:
+    """
+    FastAPI dependency providing a synchronous database session per request.
+    """
+    db = SessionFactory()
     try:
         yield db
-
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     finally:
         db.close()
