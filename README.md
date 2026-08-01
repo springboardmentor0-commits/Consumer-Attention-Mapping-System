@@ -144,12 +144,12 @@ Consumer-Attention-Mapping-System/
 
 # 📈 Development Roadmap
 
-| Milestone                                                 | Timeline     | What We Do                                                                                                                                                                                                 | Status         |
-| --------------------------------------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
-| **Milestone 1 – Foundation & Core Setup**                 | **Week 1–2** | Set up the project architecture, design the database schema, implement authentication with Role-Based Access Control (RBAC), develop Store & Shelf Management modules, and integrate retail camera feeds.  | 🚧 In Progress |
-| **Milestone 2 – Consumer Detection & Attention Analysis** | **Week 3–4** | Build the shopper detection and tracking engine, implement gaze estimation, analyze shelf engagement, calculate dwell time, and generate customer attention analytics.                                     | ⏳ Planned      |
-| **Milestone 3 – Behavioral Intelligence & Optimization**  | **Week 5–6** | Develop consumer behavior analytics, generate retail attention heatmaps, implement product attractiveness scoring, build the AI recommendation engine, and create retail intelligence dashboards.          | ⏳ Planned      |
-| **Milestone 4 – Analytics, Testing & Deployment**         | **Week 7–8** | Integrate the complete application, develop executive dashboards and reports, perform testing and validation, optimize system performance, containerize using Docker, and deploy to the cloud (AWS/Azure). | ⏳ Planned      |
+| Milestone                                                 | Timeline     | What We Do                                                                                                                                                                                                                                   |
+| --------------------------------------------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Milestone 1 – Foundation & Core Setup**                 | **Week 1–2** | Set up the project architecture, design the database schema, implement authentication with Role-Based Access Control (RBAC), develop Store & Shelf Management modules, and integrate retail camera feeds.                                    |
+| **Milestone 2 – Consumer Detection & Attention Analysis** | **Week 3–4** | Build the shopper detection and tracking engine, implement gaze estimation, analyze shelf engagement, calculate dwell time, and generate customer attention analytics.                                                                       |
+| **Milestone 3 – Behavioral Intelligence & Optimization**  | **Week 5–6** | Develop consumer behavior analytics, generate retail attention heatmaps, implement product attractiveness scoring, build the AI recommendation engine, and create retail intelligence dashboards.                                            |
+| **Milestone 4 – Analytics, Testing & Deployment**         | **Week 7–8** | Integrate the complete application, develop executive dashboards and reports, perform testing and validation, optimize system performance, containerize the application using Docker, and deploy it to cloud platforms such as AWS or Azure. |
 
 ---
 
