@@ -21,29 +21,45 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(
 bearer_scheme = HTTPBearer(auto_error=False)
 
 ROLE_PERMISSIONS = {
-    1: {
+    1: {  # Admin
         "view_stores": True,
         "create_store": True,
+        "update_store": True,
+        "delete_store": True,
         "view_shelves": True,
         "create_shelf": True,
+        "update_shelf": True,
+        "delete_shelf": True,
     },
-    2: {
+    2: {  # Store Manager
         "view_stores": True,
-        "create_store": True,
+        "create_store": False,
+        "update_store": True,
+        "delete_store": False,
         "view_shelves": True,
         "create_shelf": True,
+        "update_shelf": True,
+        "delete_shelf": True,
     },
-    3: {
+    3: {  # Retail Analyst
         "view_stores": True,
         "create_store": False,
+        "update_store": False,
+        "delete_store": False,
         "view_shelves": True,
         "create_shelf": False,
+        "update_shelf": False,
+        "delete_shelf": False,
     },
-    4: {
+    4: {  # Marketing Manager
         "view_stores": True,
         "create_store": False,
+        "update_store": False,
+        "delete_store": False,
         "view_shelves": True,
         "create_shelf": False,
+        "update_shelf": True,
+        "delete_shelf": False,
     },
 }
 

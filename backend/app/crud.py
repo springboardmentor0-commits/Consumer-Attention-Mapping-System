@@ -69,3 +69,8 @@ def create_shelf(db: Session, shelf: schemas.ShelfCreate):
 
 def get_all_shelves(db: Session):
     return db.query(models.Shelf).all()
+
+
+def get_shelves_by_store(db: Session, store_id: int):
+    return db.query(models.Shelf).filter(models.Shelf.store_id == store_id).all()
+

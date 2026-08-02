@@ -6,6 +6,13 @@ from . import models
 from . import schemas
 from . import crud
 from . import auth
+from .detection import router as detection_router
+from .attention import router as attention_router
+from .interaction import router as interaction_router
+from .behavior import router as behavior_router
+from .heatmap import router as heatmap_router
+from .scoring import router as scoring_router
+from .optimization import router as optimization_router
 
 from .database import engine, get_db, SessionLocal
 
@@ -189,7 +196,32 @@ def add_shelf(
 
 @app.get("/shelves")
 def get_shelves(
+        store_id: int = None,
         db: Session = Depends(get_db)
 ):
 
+    if store_id is not None:
+        return crud.get_shelves_by_store(db, store_id)
+
     return crud.get_all_shelves(db)
+
+# Include detection router
+app.include_router(detection_router)
+
+# Include attention analysis router
+app.include_router(attention_router)
+
+# Include product interaction analysis router
+app.include_router(interaction_router)
+
+# Include consumer behavior intelligence router
+app.include_router(behavior_router)
+
+# Include attention heatmap generation router
+app.include_router(heatmap_router)
+
+# Include product attractiveness scoring router
+app.include_router(scoring_router)
+
+# Include recommendation & optimization router
+app.include_router(optimization_router)
