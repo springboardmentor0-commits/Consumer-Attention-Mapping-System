@@ -67,6 +67,8 @@ function AnalyticsDashboard() {
 
     const [analytics, setAnalytics] = useState([]);
     const [summary, setSummary] = useState({});
+    const [recommendations, setRecommendations] = useState([]);
+    const [segments, setSegments] = useState([]);
 
     useEffect(() => {
 
@@ -92,11 +94,19 @@ const summaryResponse = await axios.get(
     "http://127.0.0.1:8000/analytics/summary"
 );
 
+const recommendationResponse = await axios.get(
+    "http://127.0.0.1:8000/analytics/recommendations"
+);
 
+const segmentResponse = await axios.get(
+    "http://127.0.0.1:8000/analytics/segments"
+);
 
 
 setAnalytics(analyticsResponse.data);
 setSummary(summaryResponse.data);
+setRecommendations(recommendationResponse.data);
+setSegments(segmentResponse.data);
 
         }
 
@@ -191,7 +201,7 @@ boxShadow:"0 10px 35px rgba(0,0,0,.08)"
 }}
 >
 
-    <h1
+<h1
 style={{
 textAlign:"center",
 marginBottom:"10px",
@@ -210,7 +220,6 @@ marginBottom:"40px"
 >
 Real-Time Retail Shopper Analytics using YOLOv8 + ByteTrack + FastAPI + React
 </p>
-
 {/* KPI Cards */}
 
 <div
@@ -243,20 +252,72 @@ value={summary.top_shelf}
 />
 
 </div>
-
-{/* Chart */}
+{/* Shelf Attention Chart */}
 
 <Bar
 data={data}
 options={options}
 height={120}
 />
+<div
+style={{
+marginTop:"35px",
+background:"#ffffff",
+padding:"25px",
+borderRadius:"18px",
+boxShadow:"0 8px 20px rgba(0,0,0,.08)"
+}}
+>
 
+<h2
+style={{
+marginBottom:"20px",
+color:"#1A73E8"
+}}
+>
+🧠 Shopper Segments
+</h2>
 
+{
+segments.map((item,index)=>(
+
+<div
+key={index}
+style={{
+display:"flex",
+justifyContent:"space-between",
+padding:"12px 0",
+borderBottom:"1px solid #eee"
+}}
+>
+
+<span
+style={{
+fontWeight:"600"
+}}
+>
+{item.segment}
+</span>
+
+<span
+style={{
+color:"#1A73E8",
+fontWeight:"700"
+}}
+>
+{item.count}
+</span>
+
+</div>
+
+))
+}
+
+</div>
 <div
 style={{
 marginTop:"40px",
-background:"#fff",
+background:"#ffffff",
 padding:"25px",
 borderRadius:"20px",
 boxShadow:"0 8px 25px rgba(0,0,0,.08)"
@@ -288,7 +349,9 @@ background:"#EEF4FF"
 >
 
 <th style={{padding:"15px"}}>Rank</th>
+
 <th style={{padding:"15px"}}>Shelf</th>
+
 <th style={{padding:"15px"}}>Attention (sec)</th>
 
 </tr>
@@ -334,7 +397,6 @@ index+1
 
 </table>
 <StoreLayout analytics={analytics}/>
-
 <div
 style={{
 display:"grid",
@@ -382,27 +444,79 @@ height:"18px"
 }
 
 </div>
-{/* <div
+
+</div>
+<div
 style={{
 marginTop:"40px",
-background:"#fff",
+background:"#ffffff",
 padding:"25px",
-borderRadius:"20px",
+borderRadius:"18px",
 boxShadow:"0 8px 25px rgba(0,0,0,.08)"
 }}
 >
 
-<h2>🟢 Live Store Status</h2>
+<h2 style={{marginBottom:"20px"}}>
+📢 Store Recommendations
+</h2>
 
-<p><strong>👥 Active Shoppers:</strong> {liveStatus.active_shoppers}</p>
+{
+recommendations.map((item,index)=>(
 
-<p><strong>🎥 Camera:</strong> {liveStatus.camera_status}</p>
+<div
+key={index}
+style={{
+padding:"15px",
+marginBottom:"12px",
+borderLeft:"6px solid #1A73E8",
+background:"#F8F9FC",
+borderRadius:"8px"
+}}
+>
 
-<p><strong>⚙️ System:</strong> {liveStatus.system_status}</p>
+<h3>{item.shelf_name}</h3>
 
-<p><strong>🕒 Last Update:</strong> {liveStatus.last_update}</p>
+<p>
+⭐ Score : {item.attractiveness_score}
+</p>
 
-</div> */}
+<p>
+{item.recommendation}
+</p>
+
+</div>
+
+))
+}
+
+</div>
+<div
+style={{
+marginTop:"40px",
+background:"#ffffff",
+padding:"25px",
+borderRadius:"18px",
+boxShadow:"0 8px 25px rgba(0,0,0,.08)"
+}}
+>
+
+<h2
+style={{
+marginBottom:"20px",
+color:"#1A73E8"
+}}
+>
+🔥 Store Traffic Heatmap
+</h2>
+
+<img
+src={`http://127.0.0.1:8000/analytics/heatmap?${Date.now()}`}
+alt="Heatmap"
+style={{
+width:"100%",
+borderRadius:"15px"
+}}
+/>
 
 </div>
 <div
@@ -420,6 +534,7 @@ Powered by
 </strong>
 
 </div>
+
 </div>
 
 );

@@ -5,8 +5,12 @@ from ultralytics import YOLO
 
 from shelf_loader import load_shelves
 from database import SessionLocal
-from models import ShelfAnalytics
+from models import ShelfAnalytics , ShopperSession
+from behavior_classifier import classify_behavior
 from gaze_estimation import estimate_gaze
+from heatmap_generator import generate_heatmap
+from attractiveness_score import calculate_score
+from recommendation_engine import generate_recommendation
 
 
 # =====================================
@@ -51,6 +55,10 @@ current_shelf = {}
 current_shelf_id = {}
 active_ids = set()
 track_history = {}
+path_lengths = {}
+last_direction = {}
+gaze_changes = {}
+heatmap_points = []
 
 print("🚀 Consumer Attention Analytics Started")
 previous_time = time.time()
@@ -92,22 +100,7 @@ while True:
         (255,255,255)
     )
 
-#         if direction == "LEFT":
-#             box_color = (255, 0, 0)          # Blue
 
-#         elif direction == "RIGHT":
-#             box_color = (0, 165, 255)        # Orange
-
-#         else:
-#             box_color = (0, 255, 0)          # Green
-
-#         cv2.rectangle(
-#     annotated_frame,
-#     (x1, y1),
-#     (x2, y2),
-#     box_color,
-#     3
-# )
 
         cv2.putText(
         annotated_frame,
@@ -183,11 +176,29 @@ while True:
         center_y = (y1 + y2) // 2
 
         center = (center_x, center_y)
+        heatmap_points.append(center)
 
         if shopper_id not in track_history:
             track_history[shopper_id] = []
 
+        if shopper_id not in path_lengths:
+            path_lengths[shopper_id] = 0
         track_history[shopper_id].append(center)
+
+        
+
+        
+        
+        points = track_history[shopper_id]
+
+        if len(points) >= 2:
+
+            x_prev, y_prev = points[-2]
+            x_curr, y_curr = points[-1]
+
+            distance = ((x_curr - x_prev) ** 2 + (y_curr - y_prev) ** 2) ** 0.5
+
+            path_lengths[shopper_id] += distance
 
         if len(track_history[shopper_id]) > 40:
             track_history[shopper_id].pop(0)
@@ -218,6 +229,15 @@ while True:
         head_crop = person_crop[:head_height, :]
 
         direction = estimate_gaze(head_crop)
+        if shopper_id not in gaze_changes:
+            gaze_changes[shopper_id] = 0
+
+        if shopper_id not in last_direction:
+            last_direction[shopper_id] = direction
+
+        if direction != last_direction[shopper_id]:
+            gaze_changes[shopper_id] += 1
+            last_direction[shopper_id] = direction
 
         if direction == "LEFT":
             box_color = (255, 0, 0)          # Blue
@@ -344,25 +364,77 @@ while True:
             f"💾 Saving -> Shopper {shopper_id} | {shelf_name} | {attention_time:.2f} sec"
         )
 
+
+        # ----------------------------
+        # Shopper Segmentation
+        # ----------------------------
+
+        path = path_lengths.get(shopper_id, 0)
+        gaze = gaze_changes.get(shopper_id, 0)
+
+        score = calculate_score(
+            attention_time,
+            gaze
+)
+        print(f"Shelf Score : {score}")
+        recommendation = generate_recommendation(
+        attention_time,
+        score
+)
+
+        print(recommendation)
+
+        
+
+        segment = classify_behavior(
+            attention_time,
+            path,
+            gaze
+            )
+
+        print(f"Behavior Segment: {segment}")
+
+        
+
         # Save only if a shelf was identified
         if shelf_id is not None:
 
             db = SessionLocal()
 
             analytics = ShelfAnalytics(
-                shopper_id=int(shopper_id),
-                shelf_id=int(shelf_id),
-                shelf_name=shelf_name,
-                attention_time=float(attention_time)
-            )
+
+            shopper_id=int(shopper_id),
+
+            shelf_id=int(shelf_id),
+
+            shelf_name=shelf_name,
+
+            attention_time=float(attention_time),
+
+            attractiveness_score=score
+)
 
             db.add(analytics)
+
+            session = ShopperSession(
+                shopper_id=shopper_id,
+                total_attention=attention_time,
+                path_length=path_lengths[shopper_id],
+                gaze_changes=gaze_changes[shopper_id],
+                segment=segment
+            )
+
+            db.add(session)
             db.commit()
             db.close()
 
         # Remove shopper from memory
         del entry_times[shopper_id]
         del current_shelf[shopper_id]
+        track_history.pop(shopper_id, None)
+        path_lengths.pop(shopper_id, None)
+        gaze_changes.pop(shopper_id, None)
+        last_direction.pop(shopper_id, None)
         del current_shelf_id[shopper_id]
 
     active_ids = current_ids
@@ -441,15 +513,52 @@ while True:
     2
 )
     
+    cv2.putText(
+    annotated_frame,
+    f"Path: {path_lengths.get(shopper_id,0):.0f}px",
+    (x1, y1 - 65),
+    cv2.FONT_HERSHEY_SIMPLEX,
+    0.55,
+    (255,0,255),
+    2
+)
+
+    cv2.putText(
+    annotated_frame,
+    f"Gaze: {gaze_changes.get(shopper_id,0)}",
+    (x1, y1 - 85),
+    cv2.FONT_HERSHEY_SIMPLEX,
+    0.55,
+    (0,200,255),
+    2
+)
+
+    heatmap_frame = generate_heatmap(
+    annotated_frame,
+    heatmap_points
+)
 
     cv2.imshow(
-        "Consumer Attention Analytics",
-        annotated_frame
-    )
+    "Consumer Attention Analytics",
+    annotated_frame
+)
+
+    cv2.imshow(
+    "Store Heatmap",
+    heatmap_frame
+)
+
 
     if cv2.waitKey(20) & 0xFF == ord("q"):
         break
 
+    if len(heatmap_points) > 0:
+
+        heatmap = generate_heatmap(frame, heatmap_points)
+
+        cv2.imwrite("heatmap.png", heatmap)
+
+        print("✅ Heatmap saved as heatmap.png")
 # =====================================
 # Cleanup
 # =====================================

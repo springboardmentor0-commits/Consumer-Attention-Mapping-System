@@ -69,10 +69,33 @@ class ShelfAnalytics(Base):
 
     shopper_id = Column(Integer)
 
-    shelf_id = Column(Integer, ForeignKey("shelves.id"))
+    shelf_id = Column(Integer)
 
     shelf_name = Column(String)
 
     attention_time = Column(Float)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    attractiveness_score = Column(Float)
+
+    recommendation = Column(String)
+
+    
+
+class ShopperSession(Base):
+    __tablename__ = "shopper_sessions"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    shopper_id = Column(Integer)
+
+    total_attention = Column(Float)
+
+    path_length = Column(Float)
+
+    gaze_changes = Column(Integer)
+
+    segment = Column(String)
 
     created_at = Column(DateTime, default=datetime.utcnow)

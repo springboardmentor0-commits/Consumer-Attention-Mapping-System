@@ -5,6 +5,9 @@ from passlib.context import CryptContext
 from sqlalchemy import func
 from models import ShelfAnalytics
 from datetime import datetime
+from models import ShopperSession
+from fastapi.responses import FileResponse
+
 
 from database import engine, get_db
 from models import Base, User, Role, Store, Shelf
@@ -245,3 +248,54 @@ def get_live_status():
         "system_status": "Running",
         "last_update": datetime.now().strftime("%I:%M:%S %p")
     }
+
+@app.get("/analytics/recommendations")
+def get_recommendations(db: Session = Depends(get_db)):
+
+    recommendations = (
+        db.query(
+            ShelfAnalytics.shelf_name,
+            ShelfAnalytics.attractiveness_score,
+            ShelfAnalytics.recommendation
+        )
+        .order_by(ShelfAnalytics.id.desc())
+        .limit(10)
+        .all()
+    )
+
+    return [
+        {
+            "shelf": row.shelf_name,
+            "score": row.attractiveness_score,
+            "recommendation": row.recommendation
+        }
+        for row in recommendations
+    ]
+
+@app.get("/analytics/segments")
+def get_segments(db: Session = Depends(get_db)):
+
+    data = (
+        db.query(
+            ShopperSession.segment,
+            func.count(ShopperSession.id).label("count")
+        )
+        .group_by(ShopperSession.segment)
+        .all()
+    )
+
+    return [
+        {
+            "segment": row.segment,
+            "count": row.count
+        }
+        for row in data
+    ]
+
+@app.get("/analytics/heatmap")
+def get_heatmap():
+
+    return FileResponse(
+        "heatmap.png",
+        media_type="image/png"
+    )
