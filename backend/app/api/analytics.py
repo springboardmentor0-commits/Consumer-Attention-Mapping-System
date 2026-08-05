@@ -1,17 +1,19 @@
 from fastapi import APIRouter
 from sqlalchemy import func
-
-from app.core.database import SessionLocal
-from app.models.attention_session import AttentionSession
 import subprocess
 import sys
 import os
 
+from app.core.database import SessionLocal
+from app.models.attention_session import AttentionSession
+from app.models.product_score import ProductScore
+from app.services.recommendation_service import RecommendationService
+from fastapi.responses import FileResponse
+from pathlib import Path
 
-router = APIRouter(
-    prefix="/analytics",
-    tags=["Analytics"]
-)
+router = APIRouter(prefix="/analytics", tags=["Analytics"])
+
+recommendation_service = RecommendationService()
 
 
 @router.get("/summary")
@@ -21,31 +23,24 @@ def get_summary():
 
     try:
 
-        total_shoppers = db.query(
-            AttentionSession
-        ).count()
+        total_shoppers = db.query(AttentionSession).count()
 
-        average_dwell = db.query(
-            func.avg(AttentionSession.dwell_time)
-        ).scalar()
+        average_dwell = db.query(func.avg(AttentionSession.dwell_time)).scalar()
 
-        most_viewed = db.query(
-            AttentionSession.most_viewed_zone,
-            func.count(AttentionSession.id)
-        ).group_by(
-            AttentionSession.most_viewed_zone
-        ).order_by(
-            func.count(AttentionSession.id).desc()
-        ).first()
+        most_viewed = (
+            db.query(
+                AttentionSession.most_viewed_zone,
+                func.count(AttentionSession.id),
+            )
+            .group_by(AttentionSession.most_viewed_zone)
+            .order_by(func.count(AttentionSession.id).desc())
+            .first()
+        )
 
         return {
             "total_shoppers": total_shoppers,
-            "average_dwell": round(
-                average_dwell or 0,
-                2
-            ),
-            "most_viewed_zone":
-                most_viewed[0] if most_viewed else "None"
+            "average_dwell": round(average_dwell or 0, 2),
+            "most_viewed_zone": most_viewed[0] if most_viewed else "None",
         }
 
     finally:
@@ -59,16 +54,13 @@ def get_sessions():
 
     try:
 
-        sessions = db.query(
-            AttentionSession
-        ).order_by(
-            AttentionSession.id.desc()
-        ).all()
+        sessions = db.query(AttentionSession).order_by(AttentionSession.id.desc()).all()
 
         return sessions
 
     finally:
         db.close()
+
 
 @router.get("/attention")
 def get_attention():
@@ -86,25 +78,56 @@ def get_attention():
         return {
             "Zone A": round(zone_a, 2),
             "Zone B": round(zone_b, 2),
-            "Zone C": round(zone_c, 2)
+            "Zone C": round(zone_c, 2),
         }
 
     finally:
         db.close()
 
+
 @router.post("/run")
 def run_analysis():
 
     subprocess.Popen(
-        [
-            sys.executable,
-            "-m",
-            "app.services.tracker"
-        ],
-        cwd=os.getcwd()
+        [sys.executable, "-m", "app.services.tracker"],
+        cwd=os.getcwd(),
     )
 
     return {
         "status": "success",
-        "message": "AI analysis started successfully."
+        "message": "AI analysis started successfully.",
     }
+
+
+@router.get("/product-scores")
+def get_product_scores():
+
+    from app.services.product_scoring import ProductScoringService
+
+    ProductScoringService().generate_scores()
+
+    db = SessionLocal()
+
+    try:
+
+        return db.query(ProductScore).order_by(ProductScore.id.desc()).all()
+
+    finally:
+        db.close()
+
+
+@router.get("/recommendations")
+def get_recommendations():
+
+    return recommendation_service.generate_recommendations()
+
+
+@router.get("/heatmap")
+def get_heatmap():
+
+    heatmap_path = Path("heatmaps/store_heatmap.png")
+
+    if heatmap_path.exists():
+        return FileResponse(heatmap_path)
+
+    return {"message": "Heatmap not generated yet."}

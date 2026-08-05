@@ -4,6 +4,31 @@ from app.models.attention_session import AttentionSession
 
 class AnalyticsService:
 
+    def classify_shopper(self, dwell_time, zone_a, zone_b, zone_c):
+
+        zones_visited = sum(
+            [
+                zone_a > 0.2,
+                zone_b > 0.2,
+                zone_c > 0.2,
+            ]
+        )
+
+        # Quick Buyer
+        if dwell_time < 0.8:
+            return "Quick Buyer"
+
+        # Explorer
+        elif dwell_time >= 1.2 and zones_visited >= 3:
+            return "Explorer"
+
+        # Comparison Shopper
+        elif zones_visited >= 2:
+            return "Comparison Shopper"
+
+        # Focused Shopper
+        return "Focused Shopper"
+
     def save_session(self, shopper_id, dwell_time, zone_times):
 
         db = SessionLocal()
@@ -13,6 +38,13 @@ class AnalyticsService:
             zone_a = round(zone_times.get("Zone A", 0), 2)
             zone_b = round(zone_times.get("Zone B", 0), 2)
             zone_c = round(zone_times.get("Zone C", 0), 2)
+
+            segment = self.classify_shopper(
+                dwell_time,
+                zone_a,
+                zone_b,
+                zone_c,
+            )
 
             valid_zones = {
                 zone: seconds for zone, seconds in zone_times.items() if zone != "None"
@@ -25,11 +57,12 @@ class AnalyticsService:
 
             session = AttentionSession(
                 shopper_id=shopper_id,
-                dwell_time=dwell_time,
+                dwell_time=round(dwell_time, 2),
                 zone_a_time=zone_a,
                 zone_b_time=zone_b,
                 zone_c_time=zone_c,
                 most_viewed_zone=most_viewed,
+                segment=segment,
             )
 
             db.add(session)

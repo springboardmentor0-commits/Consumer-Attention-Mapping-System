@@ -6,16 +6,24 @@ from app.services.dwell_time import DwellTimeTracker
 from app.services.attention_tracker import AttentionTracker
 from app.services.analytics_service import AnalyticsService
 from app.services.reid import ReIDManager
+from app.services.heatmap_tracker import HeatmapTracker
+from app.services.heatmap_generator import HeatmapGenerator
+from app.services.product_tracker import ProductTracker
 
 model = YOLO("yolov8n.pt")
+product_model = YOLO("app/models/trained_models/best.pt")
+print(product_model.names)
 dwell_tracker = DwellTimeTracker()
 head_pose = HeadPoseEstimator()
 shelf_mapper = ShelfMapper()
 attention_tracker = AttentionTracker()
 analytics = AnalyticsService()
 reid = ReIDManager(similarity_threshold=0.78)
+heatmap_tracker = HeatmapTracker()
+heatmap_generator = HeatmapGenerator()
+product_tracker = ProductTracker()
 
-video_path = "app/services/videos/shopping3.mp4"
+video_path = "app/services/videos/shopping6.mp4"
 cap = cv2.VideoCapture(video_path)
 
 if not cap.isOpened():
@@ -45,6 +53,40 @@ while True:
     )
 
     annotated_frame = frame.copy()
+
+    product_results = product_model(frame, conf=0.25, verbose=False)
+
+    product_boxes = []
+
+    for box in product_results[0].boxes:
+
+        x1, y1, x2, y2 = map(int, box.xyxy[0])
+
+        cls = int(box.cls[0])
+
+        label = product_model.names[cls]
+
+        product_boxes.append((x1, y1, x2, y2, label))
+
+        cv2.rectangle(
+            annotated_frame,
+            (x1, y1),
+            (x2, y2),
+            (255, 0, 0),
+            2,
+        )
+
+        cv2.putText(
+            annotated_frame,
+            label,
+            (x1, y1 - 8),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.5,
+            (255, 0, 0),
+            2,
+        )
+
+        products = product_tracker.update(product_boxes)
 
     # ----------------------------
     # Draw Shelf Zones
@@ -116,6 +158,11 @@ while True:
 
             track_ids.add(track_id)
 
+            center_x = (x1 + x2) // 2
+            center_y = (y1 + y2) // 2
+
+            heatmap_tracker.update(track_id, center_x, center_y)
+
             # ----------------------------
             # Draw Bounding Box
             # ----------------------------
@@ -148,6 +195,30 @@ while True:
                 attention_zone = shelf_mapper.get_attention_zone(
                     current_zone, direction
                 )
+
+                viewed_product = "None"
+
+                if attention_zone != "None":
+
+                    eye_x = (x1 + x2) // 2
+                    eye_y = y1 + height // 4
+
+                    nearest_distance = float("inf")
+
+                    for px1, py1, px2, py2, label in product_boxes:
+
+                        product_center_x = (px1 + px2) // 2
+                        product_center_y = (py1 + py2) // 2
+
+                        distance = (
+                            (eye_x - product_center_x) ** 2
+                            + (eye_y - product_center_y) ** 2
+                        ) ** 0.5
+
+                        if distance < nearest_distance:
+
+                            nearest_distance = distance
+                            viewed_product = label
 
                 attention_tracker.update(track_id, attention_zone, current_video_time)
 
@@ -187,7 +258,7 @@ while True:
 
             cv2.putText(
                 annotated_frame,
-                f"Viewing: {attention_zone}",
+                f"{attention_zone} | {viewed_product}",
                 (x1, y2 + 45),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.55,
@@ -286,4 +357,9 @@ for session in finished_sessions:
     )
 
 cap.release()
+points = heatmap_tracker.get_all_points()
+
+if points:
+
+    heatmap_generator.generate(frame, points)
 cv2.destroyAllWindows()

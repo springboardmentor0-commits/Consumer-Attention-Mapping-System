@@ -1,4 +1,15 @@
 import cv2
+from ultralytics import YOLO
+import os
+
+BASE_DIR = os.path.dirname(__file__)
+
+MODEL_PATH = os.path.join(BASE_DIR, "models", "trained_models", "best.pt")
+
+model = YOLO(MODEL_PATH)
+
+print("Model path:", MODEL_PATH)
+print("Exists:", os.path.exists(MODEL_PATH))
 
 print("=" * 40)
 print("Consumer Attention Mapping System")
@@ -39,6 +50,14 @@ while True:
     # Resize frame
     frame = cv2.resize(frame, (800, 600))
 
+    results = model(frame, conf=0.05, verbose=False)
+
+    print("Detections:", len(results[0].boxes))
+
+    annotated_frame = results[0].plot()
+
+    frame = annotated_frame
+
     # Frame number
     frame_number = int(cap.get(cv2.CAP_PROP_POS_FRAMES))
 
@@ -53,7 +72,7 @@ while True:
         cv2.FONT_HERSHEY_SIMPLEX,
         0.7,
         (0, 255, 0),
-        2
+        2,
     )
 
     cv2.putText(
@@ -63,18 +82,13 @@ while True:
         cv2.FONT_HERSHEY_SIMPLEX,
         0.7,
         (255, 255, 0),
-        2
+        2,
     )
 
     # Print metadata in terminal
-    print(
-        f"Frame: {frame_number} | Timestamp: {timestamp:.2f} sec"
-    )
+    print(f"Frame: {frame_number} | Timestamp: {timestamp:.2f} sec")
 
-    cv2.imshow(
-        "Consumer Attention Mapping System",
-        frame
-    )
+    cv2.imshow("Consumer Attention Mapping System", frame)
 
     if cv2.waitKey(1) & 0xFF == ord("q"):
         break

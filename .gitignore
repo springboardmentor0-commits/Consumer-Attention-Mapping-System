@@ -1,20 +1,72 @@
+# -------------------------
 # Python
+# -------------------------
 backend/venv/
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+
+# Environment
+.env
 backend/.env
 
+# -------------------------
 # React
+# -------------------------
 frontend/node_modules/
 frontend/build/
 
+# -------------------------
+# Generated Files
+# -------------------------
+backend/heatmaps/
+heatmaps/
+
+# -------------------------
+# Datasets
+# -------------------------
+datasets/
+training/dataset/
+
+# -------------------------
+# YOLO / Trained Models
+# -------------------------
+*.pt
+
+# -------------------------
 # Logs
+# -------------------------
 npm-debug.log*
 yarn-debug.log*
 
+# -------------------------
 # IDE
+# -------------------------
 .vscode/
 
+# -------------------------
 # OS
+# -------------------------
 .DS_Store
 Thumbs.db
+
+runs/
+backend/app/services/videos/
+
+backend/app/models/*.pth
+
+# Training
+backend/training/
+
+# Model weights
+*.pth
+
+# Heatmaps
+backend/heatmaps/
+
+# YOLO runs
+runs/
+
+# Videos
+backend/app/services/videos/

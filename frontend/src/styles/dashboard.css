@@ -108,7 +108,7 @@
 
 .cards{
     display:grid;
-    grid-template-columns:repeat(3,1fr);
+    grid-template-columns:repeat(4,1fr);
     gap:30px;
     margin-bottom:45px;
 }
@@ -299,21 +299,17 @@ width:100%;
 /* Charts */
 
 .charts-container{
-
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:30px;
-    margin-top:35px;
-
+    display: flex;
+    justify-content: center;
+    margin-top: 35px;
 }
 
 .chart-card{
-
-    background:#f8fafc;
-    border-radius:18px;
-    padding:25px;
-    box-shadow:0 8px 20px rgba(0,0,0,.08);
-
+    width: 70%;
+    background: #f8fafc;
+    border-radius: 18px;
+    padding: 25px;
+    box-shadow: 0 8px 20px rgba(0,0,0,.08);
 }
 
 .chart-card h3{
@@ -333,15 +329,11 @@ width:100%;
 @media(max-width:1000px){
 
 .summary-grid{
-
-grid-template-columns:1fr;
-
+    grid-template-columns:1fr;
 }
 
-.charts-container{
-
-grid-template-columns:1fr;
-
+.chart-card{
+    width: 100%;
 }
 
 }
@@ -377,5 +369,59 @@ grid-template-columns:1fr;
 
     background:#94a3b8;
     cursor:not-allowed;
+
+}
+
+.heatmap-card{
+
+    margin-top:25px;
+
+    background:#f8fafc;
+
+    padding:25px;
+
+    border-radius:18px;
+
+    text-align:center;
+
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+
+}
+
+.heatmap-image{
+
+    width:100%;
+
+    max-width:900px;
+
+    border-radius:15px;
+
+}
+
+.shopper-card{
+
+    margin-top:40px;
+    text-align:center;
+    cursor:pointer;
+    transition:.3s;
+
+}
+
+.shopper-card:hover{
+
+    transform:translateY(-5px);
+
+}
+
+.shopper-card button{
+
+    margin-top:20px;
+    padding:12px 24px;
+    border:none;
+    border-radius:10px;
+    background:#2563eb;
+    color:white;
+    cursor:pointer;
+    font-size:16px;
 
 }

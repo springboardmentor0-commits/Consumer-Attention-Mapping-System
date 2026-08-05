@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Pie, Bar } from "react-chartjs-2";
+import { Bar } from "react-chartjs-2";
 import "../styles/dashboard.css";
 
 import {
   Chart as ChartJS,
-  ArcElement,
   BarElement,
   CategoryScale,
   LinearScale,
@@ -16,7 +15,6 @@ import {
 } from "chart.js";
 
 ChartJS.register(
-  ArcElement,
   BarElement,
   CategoryScale,
   LinearScale,
@@ -40,20 +38,6 @@ function Dashboard() {
   const [sessions, setSessions] = useState([]);
   const [runningAI, setRunningAI] = useState(false);
 
-  const pieData = {
-    labels: ["Zone A", "Zone B", "Zone C"],
-    datasets: [
-      {
-        data: [
-          sessions.reduce((sum, s) => sum + s.zone_a_time, 0),
-          sessions.reduce((sum, s) => sum + s.zone_b_time, 0),
-          sessions.reduce((sum, s) => sum + s.zone_c_time, 0),
-        ],
-        backgroundColor: ["#4F46E5", "#06B6D4", "#F59E0B"],
-        borderWidth: 1,
-      },
-    ],
-  };
   const barData = {
     labels: ["Zone A", "Zone B", "Zone C"],
     datasets: [
@@ -202,6 +186,17 @@ function Dashboard() {
 
           <h4>Click to Open →</h4>
         </div>
+
+        <div className="card" onClick={() => navigate("/shopper-analytics")}>
+          <h2>👥 Shopper Analytics</h2>
+
+          <p>
+            View detailed shopper sessions, behavior segmentation, heatmaps and
+            recommendations.
+          </p>
+
+          <h4>Click to Open →</h4>
+        </div>
       </div>
 
       {/* Analytics Section */}
@@ -242,19 +237,7 @@ function Dashboard() {
 
         <div className="charts-container">
           <div className="chart-card">
-            <h3>Zone Attention Distribution</h3>
-
-            <Pie
-              data={pieData}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false,
-              }}
-            />
-          </div>
-
-          <div className="chart-card">
-            <h3>Total Attention Time</h3>
+            <h3>Attention Distribution by Shelf Zone</h3>
 
             <Bar
               data={barData}
@@ -277,34 +260,6 @@ function Dashboard() {
             />
           </div>
         </div>
-
-        <h3 style={{ marginTop: "40px" }}>Recent Shopper Sessions</h3>
-
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Dwell</th>
-              <th>Zone A</th>
-              <th>Zone B</th>
-              <th>Zone C</th>
-              <th>Most Viewed</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {sessions.map((session) => (
-              <tr key={session.id}>
-                <td>{session.shopper_id}</td>
-                <td>{session.dwell_time}</td>
-                <td>{session.zone_a_time}</td>
-                <td>{session.zone_b_time}</td>
-                <td>{session.zone_c_time}</td>
-                <td>{session.most_viewed_zone}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
       </div>
     </div>
   );

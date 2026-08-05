@@ -7,6 +7,7 @@ from app.api.shelf import router as shelf_router
 from app.api.analytics import router as analytics_router
 
 from app.core.database import SessionLocal, engine
+from app.api.recommendations import router as recommendation_router
 
 from seed import seed_roles
 
@@ -15,12 +16,9 @@ from app.models.role import Role
 from app.models.user import User
 from app.models.store import Store
 from app.models.shelf import Shelf
+from app.api import heatmap
 
-
-app = FastAPI(
-    title="Consumer Attention Mapping System",
-    version="1.0.0"
-)
+app = FastAPI(title="Consumer Attention Mapping System", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -43,11 +41,10 @@ app.include_router(auth_router)
 app.include_router(store_router)
 app.include_router(shelf_router)
 app.include_router(analytics_router)
+app.include_router(heatmap.router)
+app.include_router(recommendation_router)
 
 
 @app.get("/")
 def root():
-    return {
-        "message": "Consumer Attention Mapping System API",
-        "status": "running"
-    }
+    return {"message": "Consumer Attention Mapping System API", "status": "running"}

@@ -19,3 +19,5 @@ class AttentionSession(Base):
     zone_c_time = Column(Float, default=0)
 
     most_viewed_zone = Column(String)
+
+    segment = Column(String, default="Unknown")
