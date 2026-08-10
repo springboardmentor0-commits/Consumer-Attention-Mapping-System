@@ -161,7 +161,7 @@ while True:
             center_x = (x1 + x2) // 2
             center_y = (y1 + y2) // 2
 
-            heatmap_tracker.update(track_id, center_x, center_y)
+            heatmap_tracker.update(track_id, center_x, center_y, dwell)
 
             # ----------------------------
             # Draw Bounding Box

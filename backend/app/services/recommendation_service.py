@@ -16,15 +16,23 @@ class RecommendationService:
 
             for product in products:
 
-                # High attention but poor sales
-                if product.attention_duration >= 80 and product.conversion_rate < 20:
+                # Excellent performer
+                if product.attractiveness_score >= 80:
 
                     message = (
-                        "High attention but low sales. "
+                        "Excellent product performance. "
+                        "Maintain current placement and stock levels."
+                    )
+
+                # High attention but poor conversion
+                elif product.attention_duration >= 80 and product.conversion_rate < 20:
+
+                    message = (
+                        "High eye attention but low sales. "
                         "Review pricing or promotional offers."
                     )
 
-                # Low attention
+                # Low customer attention
                 elif product.attention_duration < 30:
 
                     message = (
@@ -37,11 +45,6 @@ class RecommendationService:
 
                     message = "Customers rarely interact. " "Improve product placement."
 
-                # Excellent performer
-                elif product.attractiveness_score >= 80:
-
-                    message = "Top performing product. " "Maintain current placement."
-
                 else:
 
                     message = "Product performance is average."
@@ -53,7 +56,6 @@ class RecommendationService:
                         "recommendation": message,
                     }
                 )
-
             return recommendations
 
         finally:

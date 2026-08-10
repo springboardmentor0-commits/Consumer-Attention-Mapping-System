@@ -6,28 +6,29 @@ class AnalyticsService:
 
     def classify_shopper(self, dwell_time, zone_a, zone_b, zone_c):
 
+        total_attention = zone_a + zone_b + zone_c
+
         zones_visited = sum(
             [
-                zone_a > 0.2,
-                zone_b > 0.2,
-                zone_c > 0.2,
+                zone_a > 2,
+                zone_b > 2,
+                zone_c > 2,
             ]
         )
 
         # Quick Buyer
-        if dwell_time < 0.8:
+        if dwell_time <= 10:
             return "Quick Buyer"
 
         # Explorer
-        elif dwell_time >= 1.2 and zones_visited >= 3:
+        if dwell_time >= 20 and zones_visited >= 3:
             return "Explorer"
 
         # Comparison Shopper
-        elif zones_visited >= 2:
+        if total_attention >= 15 and max(zone_a, zone_b, zone_c) >= 8:
             return "Comparison Shopper"
 
-        # Focused Shopper
-        return "Focused Shopper"
+        return "Regular Shopper"
 
     def save_session(self, shopper_id, dwell_time, zone_times):
 

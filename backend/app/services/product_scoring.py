@@ -53,12 +53,12 @@ class ProductScoringService:
                     zone_data["Zone C"]["interaction"] += 1
 
             max_attention = max(
-                [z["attention"] for z in zone_data.values()],
+                (z["attention"] for z in zone_data.values()),
                 default=1,
             )
 
             max_interaction = max(
-                [z["interaction"] for z in zone_data.values()],
+                (z["interaction"] for z in zone_data.values()),
                 default=1,
             )
 
@@ -78,9 +78,13 @@ class ProductScoringService:
                     else 0
                 )
 
-                pickup = interaction * 0.60
-                conversion = pickup * 0.50
-                repeat = interaction * 0.20
+                # Normalized metrics (0-100)
+
+                pickup = min(attention * 0.75, 100)
+
+                conversion = min(interaction * 0.65, 100)
+
+                repeat = min((attention + interaction) / 2 * 0.30, 100)
 
                 score = self.calculate_score(
                     attention,

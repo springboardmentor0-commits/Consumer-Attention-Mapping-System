@@ -5,9 +5,10 @@ from app.api.auth import router as auth_router
 from app.api.store import router as store_router
 from app.api.shelf import router as shelf_router
 from app.api.analytics import router as analytics_router
+from app.api.recommendations import router as recommendation_router
+from app.api import heatmap
 
 from app.core.database import SessionLocal, engine
-from app.api.recommendations import router as recommendation_router
 
 from seed import seed_roles
 
@@ -16,9 +17,16 @@ from app.models.role import Role
 from app.models.user import User
 from app.models.store import Store
 from app.models.shelf import Shelf
-from app.api import heatmap
 
-app = FastAPI(title="Consumer Attention Mapping System", version="1.0.0")
+app = FastAPI(
+    title="Consumer Attention Mapping System",
+    version="1.0.0",
+)
+
+
+# ---------------------------------------
+# CORS
+# ---------------------------------------
 
 app.add_middleware(
     CORSMiddleware,
@@ -28,15 +36,30 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Create tables
+
+# ---------------------------------------
+# Create database tables
+# ---------------------------------------
+
 Base.metadata.create_all(bind=engine)
 
-# Seed roles
-db = SessionLocal()
-seed_roles(db)
-db.close()
 
+# ---------------------------------------
+# Seed roles
+# ---------------------------------------
+
+db = SessionLocal()
+
+try:
+    seed_roles(db)
+finally:
+    db.close()
+
+
+# ---------------------------------------
 # Register API routes
+# ---------------------------------------
+
 app.include_router(auth_router)
 app.include_router(store_router)
 app.include_router(shelf_router)
@@ -45,6 +68,14 @@ app.include_router(heatmap.router)
 app.include_router(recommendation_router)
 
 
+# ---------------------------------------
+# Root endpoint
+# ---------------------------------------
+
+
 @app.get("/")
 def root():
-    return {"message": "Consumer Attention Mapping System API", "status": "running"}
+    return {
+        "message": "Consumer Attention Mapping System API",
+        "status": "running",
+    }

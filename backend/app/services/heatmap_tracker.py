@@ -1,7 +1,6 @@
 class HeatmapTracker:
 
     def __init__(self):
-        # Stores all positions for every shopper
         self.positions = {}
 
     def update(self, track_id, x, y):

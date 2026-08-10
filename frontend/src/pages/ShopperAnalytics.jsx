@@ -62,6 +62,10 @@ function ShopperAnalytics() {
     (s) => s.segment === "Comparison Shopper",
   ).length;
 
+  const regular = sessions.filter(
+    (s) => s.segment === "Regular Shopper",
+  ).length;
+
   return (
     <div className="shopper-page">
       <div className="shopper-header">
@@ -94,6 +98,11 @@ function ShopperAnalytics() {
           <h3>Comparison Shoppers</h3>
           <p>{comparison}</p>
         </div>
+
+        <div className="stat-card">
+          <h3>Regular Shoppers</h3>
+          <p>{regular}</p>
+        </div>
       </div>
 
       <div className="section-card">
@@ -118,7 +127,7 @@ function ShopperAnalytics() {
         <h2>🔥 Store Heatmap</h2>
 
         <img
-          src={`http://127.0.0.1:8000/analytics/heatmap?${Date.now()}`}
+          src={`http://127.0.0.1:8000/heatmaps/store?${Date.now()}`}
           alt="Heatmap"
           className="heatmap"
         />
@@ -174,9 +183,9 @@ function ShopperAnalytics() {
             <div key={item.product} className="recommendation-card">
               <h3>{item.product}</h3>
 
-              <p>Score: {item.score}</p>
+              <p className="recommendation-score">⭐ Score: {item.score}/100</p>
 
-              <p>{item.recommendation}</p>
+              <p className="recommendation-text">{item.recommendation}</p>
             </div>
           ))}
         </div>
