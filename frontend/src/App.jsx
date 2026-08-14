@@ -2,6 +2,9 @@ import RecommendationsCard from "./components/RecommendationsCard";
 import Navbar from "./components/Navbar";
 import SummaryCards from "./components/SummaryCards";
 import HeatmapCard from "./components/HeatmapCard";
+import AnalyticsTable from "./components/AnalyticsTable";
+import AlertsCard from "./components/AlertsCard";
+import ReportDownload from "./components/ReportDownload";
 import { useEffect, useState } from "react";
 import "./App.css";
 
@@ -36,27 +39,11 @@ function App() {
 
       <SummaryCards analytics={analytics} />
 
-      <table>
-        <thead>
-          <tr>
-            <th>Shelf ID</th>
-            <th>Average Dwell Time (sec)</th>
-            <th>Total Visits</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {analytics.map((item, index) => (
-            <tr key={index}>
-              <td>{item.shelf_id}</td>
-              <td>{item.average_dwell_time}</td>
-              <td>{item.total_visits}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <AnalyticsTable analytics={analytics} />
       <HeatmapCard />
       <RecommendationsCard />
+      <AlertsCard />
+      <ReportDownload />
     </div>
   );
 }
