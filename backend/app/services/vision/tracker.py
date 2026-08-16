@@ -33,7 +33,7 @@ class PersonTracker:
 
         results = self.model.track(
             source=frame,
-            persist=True,
+            persist=True,                #to remember ids
             tracker="bytetrack.yaml",
             classes=[0],
             conf=self.confidence,

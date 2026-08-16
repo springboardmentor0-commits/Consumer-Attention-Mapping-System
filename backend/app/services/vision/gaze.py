@@ -1,6 +1,6 @@
 import cv2
-import mediapipe as mp
-import numpy as np
+import mediapipe as mp      #for face mesh
+import numpy as np          #for matrix operations
 
 class GazeEstimator:
 
@@ -18,7 +18,7 @@ class GazeEstimator:
 
         self.drawer = mp.solutions.drawing_utils
 
-        self.drawing_spec = self.drawer.DrawingSpec(
+        self.drawing_spec = self.drawer.DrawingSpec(    #mesh colour and str
             color=(0, 255, 0),
             thickness=1,
             circle_radius=1,
@@ -44,7 +44,7 @@ class GazeEstimator:
 
         rgb = cv2.cvtColor(person_crop, cv2.COLOR_BGR2RGB)
 
-        results = self.face_mesh.process(rgb)
+        results = self.face_mesh.process(rgb)   #mediapipe predicts the landmarks here
 
         if not results.multi_face_landmarks:
 
@@ -56,7 +56,7 @@ class GazeEstimator:
         face_landmarks = results.multi_face_landmarks[0]
         height, width = person_crop.shape[:2]
 
-        landmark_indices = [1, 152, 33, 263, 61, 291]
+        landmark_indices = [1, 152, 33, 263, 61, 291]   #positions of nose,chin,le,re,lm,rm for head pose estimatn
 
         image_points = []
 
@@ -64,7 +64,7 @@ class GazeEstimator:
 
             landmark = face_landmarks.landmark[idx]
 
-            x = int(landmark.x * width)
+            x = int(landmark.x * width)     #conv to pixels
             y = int(landmark.y * height)
 
             image_points.append((x, y))

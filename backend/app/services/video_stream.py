@@ -11,6 +11,8 @@ from app.services.vision.attention import AttentionEngine
 from datetime import datetime
 from app.core.database import SessionLocal
 from app.crud.analytics import create_session
+from app.services.heatmap import generate_heatmap
+from app.services.behavior.segmentation import run_segmentation
 
 
 def start_video_stream(source):
@@ -21,8 +23,9 @@ def start_video_stream(source):
     dwell_tracker = DwellTimeTracker()
     gaze_estimator = GazeEstimator()
     attention_engine = AttentionEngine()
-
     shelf_mapper = None
+    heatmap_points = []
+    base_frame = None
 
     if not cap.isOpened():
         print(f"Could not open source: {source}")
@@ -46,6 +49,9 @@ def start_video_stream(source):
             print("\nVideo finished or stream ended.")
             break
 
+        if base_frame is None:
+            base_frame = frame.copy()
+
         if shelf_mapper is None:
             height, width = frame.shape[:2]
 
@@ -67,6 +73,7 @@ def start_video_stream(source):
         tracked_ids = []
         frame_regions = {}
         frame_focuses = {}
+        frame_positions = {}
 
         for result in results:
 
@@ -114,10 +121,19 @@ def start_video_stream(source):
 
                 if person_id != -1:
                     frame_regions[person_id] = shelf
+
                     frame_focuses[person_id] = (
                         attention if gaze["face_found"] else None
                     )
 
+                    frame_positions[person_id] = (
+                        center_x,
+                        (y1 + y2) // 2
+                    )
+                    
+                    heatmap_points.append(
+                        (center_x, bottom_y)
+                    )
                 # ----------------------------------------
                 # Draw Face Mesh
                 # ----------------------------------------
@@ -186,6 +202,7 @@ def start_video_stream(source):
             tracked_ids,
             regions=frame_regions,
             focuses=frame_focuses,
+            positions=frame_positions,
         )
 
         if completed_sessions:
@@ -197,23 +214,29 @@ def start_video_stream(source):
             for session in completed_sessions:
 
                 print(
-                    f"Shopper {session['person_id']} stayed "
-                    f"{session['dwell_time']} seconds."
+                    f"Shopper {session['person_id']} | "
+                    f"Dwell: {session['dwell_time']}s | "
+                    f"Path: {session['path_length']:.2f}px | "
+                    f"Shelf Visits: {session['shelf_visits']} | "
+                    f"Gaze Shifts: {session['gaze_shifts']}"
                 )
 
                 create_session(
-                    db,
-                    {
-                        "shopper_id": session["person_id"],
-                        "region": session["region"],
-                        "focus": session["focus"],
-                        "dwell_time": session["dwell_time"],
-                        "entry_time": datetime.fromtimestamp(session["entry_time"]),
-                        "exit_time": datetime.fromtimestamp(session["exit_time"]),
-                        "timestamp": datetime.now(),
-                    },
-                )
-
+                        db,
+                        {
+                            "shopper_id": session["person_id"],
+                            "region": session["region"],
+                            "focus": session["focus"],
+                            "dwell_time": session["dwell_time"],
+                            "path_length": session["path_length"],
+                            "shelf_visits": session["shelf_visits"],
+                            "gaze_shifts": session["gaze_shifts"],
+                            "segment": None,
+                            "entry_time": datetime.fromtimestamp(session["entry_time"]),
+                            "exit_time": datetime.fromtimestamp(session["exit_time"]),
+                            "timestamp": datetime.now(),
+                        },
+                    )
             db.close()
 
             print("=" * 60 + "\n")
@@ -320,6 +343,25 @@ def start_video_stream(source):
         if cv2.waitKey(1) & 0xFF == ord("q"):
             print("\nStopped by user.")
             break
+
+    if base_frame is not None and heatmap_points:
+
+        generate_heatmap(
+            points=heatmap_points,
+            base_frame=base_frame,
+            output_path="app/static/heatmaps/store_heatmap.jpg"
+        )
+        
+        print("\nRunning behavioral segmentation...")
+
+        db = SessionLocal()
+
+        try:
+            run_segmentation(db)
+        finally:
+            db.close()
+
+        print("Behavioral segmentation completed.")
 
     cap.release()
     cv2.destroyAllWindows()

@@ -7,6 +7,8 @@ import {
   getShelves,
   getAnalyticsSummary,
   getAnalytics,
+  type AnalyticsSession,
+  type AnalyticsSummary,
 } from "@/lib/api";
 import PageHeader from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
@@ -14,6 +16,9 @@ import { Card } from "@/components/ui/Card";
 import { RoleBadge } from "@/components/RoleBadge";
 import { OverviewItem } from "@/components/OverviewItem";
 import { DisplayAttentionChart } from "@/components/DisplayAttentionChart";
+import { BehaviorSegments } from "@/components/BehaviorSegments";
+import { HeatmapPanel } from "@/components/HeatmapPanel";
+import { ProductIntelligence } from "@/components/ProductIntelligence";
 import {
   Store,
   LayoutGrid,
@@ -33,29 +38,12 @@ type StoreRecord = {
   location: string;
 };
 
-type AnalyticsSummary = {
-  total_shoppers: number;
-  average_dwell_time: number;
-  left_display_views: number;
-  right_display_views: number;
-};
-
-type AnalyticsSession = {
-  id: number;
-  shopper_id: number;
-  region: string;
-  focus: string;
-  dwell_time: number;
-  entry_time: string;
-  exit_time: string;
-  timestamp: string;
-};
-
 export default function DashboardPage() {
   const [storeCount, setStoreCount] = useState(0);
   const [shelfCount, setShelfCount] = useState<number | null>(null);
   const [role, setRole] = useState("");
   const [email, setEmail] = useState("");
+  const [token, setToken] = useState("");
   const [analytics, setAnalytics] = useState<AnalyticsSummary>({
     total_shoppers: 0,
     average_dwell_time: 0,
@@ -77,6 +65,8 @@ export default function DashboardPage() {
         window.location.href = "/login";
         return;
       }
+
+      setToken(token);
 
       try {
         const stores: StoreRecord[] = await getStores(token);
@@ -111,7 +101,7 @@ export default function DashboardPage() {
 
           const allSessions = await getAnalytics(token);
 
-          setSessions(Array.isArray(allSessions) ? allSessions.slice(-5).reverse() : []);
+          setSessions(Array.isArray(allSessions) ? allSessions : []);
         } catch (error) {
           console.error(error);
           setAnalyticsError(true);
@@ -126,6 +116,11 @@ export default function DashboardPage() {
 
     loadDashboard();
   }, []);
+
+  // `sessions` holds every session so segment counts cover the full set;
+  // the table below only shows the five most recent.
+  const recentSessions = sessions.slice(-5).reverse();
+
 
   return (
     <>
@@ -248,6 +243,12 @@ export default function DashboardPage() {
             />
           </div>
 
+          <HeatmapPanel token={token} />
+
+          <BehaviorSegments sessions={sessions} />
+
+          <ProductIntelligence token={token} />
+
           <Card className="mt-6 p-6">
             <h2 className="mb-5 text-base font-semibold text-slate-900">
               Recent Sessions
@@ -267,7 +268,7 @@ export default function DashboardPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {sessions.map((session) => (
+                    {recentSessions.map((session) => (
                       <tr
                         key={session.id}
                         className="border-b border-slate-100 text-slate-700 last:border-0"

@@ -1,3 +1,4 @@
+#everytime u add any file to app/api ie to create the api endpoint you gotta come here and import it first then add the router
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware       #to overcome the same origin policy an issue i faced with bf hving diff browsers
 from sqlalchemy import text                              #to run raw sql commands
@@ -9,6 +10,9 @@ from app.api.shelves import router as shelf_router
 from app.services.seed import seed_roles                  #db seeding like adding default roles
 from app.api.analytics import router as analytics_router
 from app.models.analytics import Analytics
+from app.api import heatmaps
+from app.api import attractiveness
+from app.api import recommendations
 
 from app.models.role import Role
 from app.models.user import User
@@ -39,6 +43,9 @@ app.include_router(auth_router)
 app.include_router(store_router)
 app.include_router(shelf_router)
 app.include_router(analytics_router)
+app.include_router(heatmaps.router)
+app.include_router(attractiveness.router)
+app.include_router(recommendations.router)
 
 db = SessionLocal()                 #open db session sesh and insert default roles if u want and close db sesh
 seed_roles(db)

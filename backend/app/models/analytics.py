@@ -15,6 +15,14 @@ class Analytics(Base):
 
     dwell_time = Column(Float, nullable=False)
 
+    path_length = Column(Float, nullable=False)
+
+    shelf_visits = Column(Integer, nullable=False)
+
+    gaze_shifts = Column(Integer, nullable=False)
+
+    segment = Column(String, nullable=True)
+
     entry_time = Column(DateTime, nullable=False)
 
     exit_time = Column(DateTime, nullable=False)
