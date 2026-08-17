@@ -3,6 +3,21 @@
 import { Card } from "@/components/ui/Card";
 import type { RecommendationResponse } from "@/lib/api";
 
+// Priority as returned by the backend rule engine. Colour only — the wording
+// and the thresholds behind it come from the service.
+function priorityStyle(priority: string) {
+  switch (priority) {
+    case "High":
+      return "bg-red-50 text-red-700";
+    case "Medium":
+      return "bg-amber-50 text-amber-700";
+    case "Excellent":
+      return "bg-emerald-50 text-emerald-700";
+    default:
+      return "bg-slate-100 text-slate-600";
+  }
+}
+
 export function RecommendationsPanel({
   results,
 }: {
@@ -22,24 +37,33 @@ export function RecommendationsPanel({
 
       {results.length === 0 ? (
         <p className="text-sm text-slate-500">
-          No recommendations available yet. Score a product above to populate
-          this section.
+          No recommendations available yet.
         </p>
       ) : (
         <div className="space-y-3">
           {results.map((result) => (
             <div
-              key={result.product_name}
+              key={result.shelf}
               className="rounded-xl border border-slate-200 bg-slate-50 p-4"
             >
               <div className="flex items-center justify-between gap-3">
                 <p className="truncate font-medium text-slate-800">
-                  {result.product_name}
+                  {result.shelf}
                 </p>
 
-                <span className="shrink-0 text-sm font-medium text-slate-500">
-                  Score {result.attractiveness_score}
-                </span>
+                <div className="flex shrink-0 items-center gap-2">
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-xs font-semibold ${priorityStyle(
+                      result.priority
+                    )}`}
+                  >
+                    {result.priority}
+                  </span>
+
+                  <span className="text-sm font-medium text-slate-500">
+                    Score {result.score}
+                  </span>
+                </div>
               </div>
 
               <ul className="mt-2 space-y-1.5">

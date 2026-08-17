@@ -1,47 +1,81 @@
-def generate_recommendation(
+from typing import Dict, List
+
+
+def generate_product_recommendation(
     product_name: str,
-    attention_duration: float,
-    interaction_frequency: float,
-    pickup_rate: float,
-    conversion_rate: float,
-    repeat_engagement: float,
+    shelf_zone: str,
     attractiveness_score: float,
-):
-    recommendations = []
+) -> Dict:
+    """
+    Generate rule-based recommendations based on the Product
+    Attractiveness Score.
 
-    # High attention but poor conversion
-    if attention_duration > 80 and (
-        pickup_rate == 0 or conversion_rate == 0
-    ):
-        recommendations.append(
-            "High Eye Attention but Low Sales. "
-            "Suggest reviewing pricing or promotional offer."
+    Parameters
+    ----------
+    product_name : str
+        Name of the product.
+    shelf_zone : str
+        Shelf where the product is placed (e.g., Shelf A, Shelf B).
+    attractiveness_score : float
+        Final attractiveness score (0-100).
+
+    Returns
+    -------
+    dict
+        Recommendation details including priority and suggestions.
+    """
+
+    recommendations: List[str] = []
+
+    if attractiveness_score < 40:
+        priority = "High"
+
+        recommendations.extend(
+            [
+                "Reposition the product to an eye-level shelf for better visibility.",
+                "Improve shelf presentation using clearer signage and lighting.",
+                "Consider promotional pricing or discount campaigns.",
+                "Review product packaging and shelf placement strategy.",
+            ]
         )
 
-    # High interaction but low pickup
-    if interaction_frequency > 70 and pickup_rate < 30:
-        recommendations.append(
-            "High customer interaction but low pickup rate. "
-            "Consider improving product placement or packaging."
+    elif attractiveness_score < 60:
+        priority = "Medium"
+
+        recommendations.extend(
+            [
+                "Optimize shelf organization to improve customer engagement.",
+                "Bundle the product with complementary items.",
+                "Monitor shopper engagement and adjust placement if required.",
+            ]
         )
 
-    # Low attractiveness
-    if attractiveness_score < 30:
-        recommendations.append(
-            "Low product attractiveness. "
-            "Consider improving shelf visibility, placement, or promotion."
+    elif attractiveness_score < 80:
+        priority = "Low"
+
+        recommendations.extend(
+            [
+                "Current shelf placement is satisfactory.",
+                "Continue monitoring product performance.",
+                "Seasonal promotions may further improve engagement.",
+            ]
         )
 
-    # Good performance
-    if not recommendations and attractiveness_score >= 70:
-        recommendations.append(
-            "Product is performing well. "
-            "Maintain current placement and promotional strategy."
+    else:
+        priority = "Excellent"
+
+        recommendations.extend(
+            [
+                "Current shelf placement is performing exceptionally well.",
+                "Maintain the existing merchandising strategy.",
+                "Use this product placement as a benchmark for similar products.",
+            ]
         )
 
-    if not recommendations:
-        recommendations.append(
-            "No major anomaly detected. Continue monitoring performance."
-        )
-
-    return recommendations
+    return {
+        "product": product_name,
+        "shelf": shelf_zone,
+        "score": round(attractiveness_score, 2),
+        "priority": priority,
+        "recommendations": recommendations,
+    }

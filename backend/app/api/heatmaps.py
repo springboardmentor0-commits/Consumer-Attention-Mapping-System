@@ -1,11 +1,15 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi.responses import FileResponse
 import os
+
+from app.core.dependencies import ALL_ROLES, require_roles
 
 
 router = APIRouter(
     prefix="/heatmaps",
     tags=["Heatmaps"],
+    # Read-only heatmap imagery: visible to every signed-in role.
+    dependencies=[Depends(require_roles(*ALL_ROLES))],
 )
 
 

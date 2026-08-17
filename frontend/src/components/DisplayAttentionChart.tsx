@@ -12,21 +12,21 @@ import {
 import { Card } from "@/components/ui/Card";
 
 export function DisplayAttentionChart({
-  leftDisplayViews,
-  rightDisplayViews,
+  shelfAViews,
+  shelfBViews,
 }: {
-  leftDisplayViews: number;
-  rightDisplayViews: number;
+  shelfAViews: number;
+  shelfBViews: number;
 }) {
   const data = [
-    { name: "Left Display", views: leftDisplayViews },
-    { name: "Right Display", views: rightDisplayViews },
+    { name: "Shelf A", views: shelfAViews },
+    { name: "Shelf B", views: shelfBViews },
   ];
 
   return (
     <Card className="p-6">
       <h2 className="mb-5 text-base font-semibold text-slate-900">
-        Display Attention
+        Shelf Attention
       </h2>
 
       <div className="h-72">

@@ -48,6 +48,104 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* ───────────────────────────────────────────────────────────────
+   Design system tokens.
+
+   Tailwind v4 has no JS config file — theme values are declared here and
+   Tailwind generates the matching utilities (`--color-analytics-base` gives
+   `bg-analytics-base`, `text-analytics-base`, `border-analytics-base`, …).
+
+   Neutral base carries the interface; the six semantic accents carry
+   meaning. Each accent has three stops so a component never has to invent a
+   shade:
+
+     -soft    tinted background for icon chips, badges and rails
+     -base    the accent itself: icons, progress bars, chart series
+     -strong  text sitting on a -soft background
+
+   Use the semantic name, not the hue: `bg-critical-soft`, never `bg-red-50`.
+   Tones are mapped to components in src/lib/tone.ts.
+   ─────────────────────────────────────────────────────────────── */
+@theme {
+  /* Neutral base — surfaces, lines and text */
+  --color-canvas: oklch(0.984 0.003 247.858);
+  --color-surface: oklch(1 0 0);
+  --color-surface-sunken: oklch(0.968 0.007 247.896);
+  --color-line: oklch(0.929 0.013 255.508);
+  --color-line-strong: oklch(0.869 0.022 252.894);
+  --color-ink: oklch(0.208 0.042 265.755);
+  --color-ink-muted: oklch(0.554 0.046 257.417);
+  --color-ink-subtle: oklch(0.704 0.04 256.788);
+
+  /* Analytics — measurement, counts, neutral reporting */
+  --color-analytics-soft: oklch(0.97 0.014 254.604);
+  --color-analytics-base: oklch(0.623 0.214 259.815);
+  --color-analytics-strong: oklch(0.488 0.243 264.376);
+
+  /* Healthy — good standing, positive trend, success */
+  --color-healthy-soft: oklch(0.979 0.021 166.113);
+  --color-healthy-base: oklch(0.696 0.17 162.48);
+  --color-healthy-strong: oklch(0.508 0.118 165.612);
+
+  /* Warning — needs attention, mid-range scores */
+  --color-warning-soft: oklch(0.987 0.022 95.277);
+  --color-warning-base: oklch(0.769 0.188 70.08);
+  --color-warning-strong: oklch(0.555 0.163 48.998);
+
+  /* Critical — failure, high-priority action, destructive */
+  --color-critical-soft: oklch(0.971 0.013 17.38);
+  --color-critical-base: oklch(0.637 0.237 25.331);
+  --color-critical-strong: oklch(0.505 0.213 27.518);
+
+  /* AI — generated scores and recommendations */
+  --color-ai-soft: oklch(0.969 0.016 293.756);
+  --color-ai-base: oklch(0.606 0.25 292.717);
+  --color-ai-strong: oklch(0.491 0.27 292.581);
+
+  /* Behavior — segmentation, shopper journey, dwell */
+  --color-behavior-soft: oklch(0.984 0.014 180.72);
+  --color-behavior-base: oklch(0.704 0.14 182.503);
+  --color-behavior-strong: oklch(0.511 0.096 186.391);
+
+  /* Elevation — two steps only: resting surface and hover lift */
+  --shadow-card: 0 1px 2px 0 rgb(15 23 42 / 0.04);
+  --shadow-card-hover: 0 8px 24px -8px rgb(15 23 42 / 0.12);
+  --shadow-inset-tile: inset 0 1px 0 0 rgb(255 255 255 / 0.6);
+
+  /* Motion — subtle only: fade and rise, no bounce or scale */
+  --animate-fade-in: fade-in 0.24s ease-out both;
+  --animate-rise-in: rise-in 0.28s ease-out both;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 :root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);

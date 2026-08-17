@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.core.dependencies import require_roles
+from app.core.dependencies import ADMIN_ONLY, ALL_ROLES, require_roles
 
 from app.core.database import get_db
 from app.crud.store import (
@@ -19,7 +19,7 @@ router = APIRouter(
 @router.post(
     "/",
     dependencies=[
-        Depends(require_roles("SuperAdmin", "StoreManager"))
+        Depends(require_roles(*ADMIN_ONLY))
     ],
 )
 def add_store(store: StoreCreate, db: Session = Depends(get_db)):
@@ -30,7 +30,12 @@ def add_store(store: StoreCreate, db: Session = Depends(get_db)):
     )
 
 
-@router.get("/")
+@router.get(
+    "/",
+    dependencies=[
+        Depends(require_roles(*ALL_ROLES))
+    ],
+)
 def read_stores(db: Session = Depends(get_db)):
     return get_stores(db)
 
@@ -38,7 +43,7 @@ def read_stores(db: Session = Depends(get_db)):
 @router.put(
     "/{store_id}",
     dependencies=[
-        Depends(require_roles("SuperAdmin", "StoreManager"))
+        Depends(require_roles(*ADMIN_ONLY))
     ],
 )
 def edit_store(
@@ -65,7 +70,7 @@ def edit_store(
 @router.delete(
     "/{store_id}",
     dependencies=[
-        Depends(require_roles("SuperAdmin"))
+        Depends(require_roles(*ADMIN_ONLY))
     ],
 )
 def remove_store(

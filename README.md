@@ -81,7 +81,7 @@ The analytics dashboard provides:
 - Average dwell time
 - Shelf attention analytics
 - Recent shopper sessions
-- Display-wise attention insights
+- Shelf-wise attention insights (Shelf A / Shelf B)
 
 ---
 
@@ -119,10 +119,11 @@ Detects shoppers in every video frame using YOLOv8.
 Maintains unique shopper identities across frames using ByteTrack.
 
 ### Dwell Time Analysis
-Measures how long each shopper remains near retail displays.
+Measures how long each shopper remains near retail shelves.
 
 ### Shelf Mapping
-Maps shopper positions to predefined display regions.
+Maps shopper positions to predefined shelf zones (Shelf A / Shelf B). The band
+between them is left unmapped and reported as the Walking Aisle.
 
 ### Gaze Estimation
 Uses MediaPipe Face Mesh to estimate the shopper's head direction and infer viewing attention.

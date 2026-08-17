@@ -182,9 +182,41 @@ export async function deleteShelf(
 export type AnalyticsSummary = {
   total_shoppers: number;
   average_dwell_time: number;
+  // Stored/served under the original keys — see get_summary() in
+  // backend/app/crud/analytics.py. The UI labels them Shelf A / Shelf B.
   left_display_views: number;
   right_display_views: number;
 };
+
+// Zone values the vision pipeline persists — these must match LEFT_ZONE /
+// RIGHT_ZONE in backend/app/services/vision/shelf_mapper.py, since they are
+// what the analytics rows are filtered by.
+export const LEFT_ZONE = "Left Display";
+export const RIGHT_ZONE = "Right Display";
+
+export const SHELF_ZONES = [LEFT_ZONE, RIGHT_ZONE];
+
+// Stored zone value mapped to the label shown in the UI. The stored values
+// are unchanged; only the labels differ.
+const ZONE_LABELS: Record<string, string> = {
+  [LEFT_ZONE]: "Shelf A",
+  [RIGHT_ZONE]: "Shelf B",
+};
+
+export const WALKING_AISLE_LABEL = "Walking Aisle";
+
+// Labels a zone value. Anything unrecognised ("No attention", "Unknown") is
+// passed through so focus values keep their original meaning.
+export function zoneLabel(value: string): string {
+  return ZONE_LABELS[value] ?? value;
+}
+
+// A session whose region never resolved to a shelf zone stayed in the centre
+// band of the frame, which shelf_mapper leaves unmapped on purpose — that is
+// the walking aisle, not an unknown location.
+export function regionLabel(region: string): string {
+  return region === "Unknown" ? WALKING_AISLE_LABEL : zoneLabel(region);
+}
 
 export type AnalyticsSession = {
   id: number;
@@ -272,8 +304,9 @@ export async function fetchStoreHeatmap(
 
 // -------------------- Product intelligence (Milestone 3) --------------------
 
-export type ProductMetrics = {
-  product_name: string;
+// The five inputs the backend scoring formula consumes. Always fully resolved
+// to numbers by the time the backend answers, whatever their source was.
+export type ScoringMetrics = {
   attention_duration: number;
   interaction_frequency: number;
   pickup_rate: number;
@@ -281,14 +314,43 @@ export type ProductMetrics = {
   repeat_engagement: number;
 };
 
+// Where the backend took each input from. "analytics" = measured by the
+// vision pipeline, "generated" = derived from attention duration by the
+// scoring engine, "unavailable" = no analytics recorded yet.
+export type MetricSource =
+  | "analytics"
+  | "generated"
+  | "manual"
+  | "unavailable";
+
+// Request body for POST /attractiveness/score. Scoring is fully automatic, so
+// only the product and its shelf are sent — every metric is resolved server
+// side. The endpoint still accepts metric fields from older clients.
+export type ProductMetrics = {
+  product_name: string;
+  zone: string | null;
+};
+
 export type AttractivenessResponse = {
   product_name: string;
   attractiveness_score: number;
+  // Optional, matching the backend defaults, so the two fields above stay
+  // sufficient on their own.
+  metrics_used?: ScoringMetrics | null;
+  metric_sources?: Record<string, MetricSource> | null;
+  zone?: string | null;
+  analytics_sessions?: number | null;
+  // When the pipeline last recorded a session for this zone.
+  analytics_updated_at?: string | null;
 };
 
+// Shape returned by POST /recommendations/ — see generate_product_recommendation
+// in backend/app/services/recommendations.py.
 export type RecommendationResponse = {
-  product_name: string;
-  attractiveness_score: number;
+  product: string;
+  shelf: string;
+  score: number;
+  priority: string;
   recommendations: string[];
 };
 
@@ -312,8 +374,11 @@ export async function calculateAttractiveness(
   return response.json();
 }
 
+// Recommendations key off shelf, product and score only — the individual
+// metrics are internal to the scoring engine now.
 export async function getRecommendation(
-  metrics: ProductMetrics,
+  productName: string,
+  shelfZone: string | null,
   attractivenessScore: number,
   token: string
 ): Promise<RecommendationResponse> {
@@ -324,7 +389,8 @@ export async function getRecommendation(
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({
-      ...metrics,
+      product_name: productName,
+      shelf_zone: shelfZone,
       attractiveness_score: attractivenessScore,
     }),
   });

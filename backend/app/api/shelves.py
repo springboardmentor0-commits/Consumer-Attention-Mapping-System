@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.core.dependencies import require_roles
+from app.core.dependencies import ALL_ROLES, MANAGEMENT_ROLES, require_roles
 
 from app.core.database import get_db
 from app.crud.shelf import (
@@ -19,7 +19,7 @@ router = APIRouter(
 @router.post(
     "/{store_id}/shelves",
     dependencies=[
-        Depends(require_roles("SuperAdmin", "StoreManager"))
+        Depends(require_roles(*MANAGEMENT_ROLES))
     ],
 )
 def add_shelf(
@@ -35,7 +35,12 @@ def add_shelf(
     )
 
 
-@router.get("/{store_id}/shelves")
+@router.get(
+    "/{store_id}/shelves",
+    dependencies=[
+        Depends(require_roles(*ALL_ROLES))
+    ],
+)
 def read_shelves(
     store_id: int,
     db: Session = Depends(get_db),
@@ -46,7 +51,7 @@ def read_shelves(
 @router.put(
     "/shelves/{shelf_id}",
     dependencies=[
-        Depends(require_roles("SuperAdmin", "StoreManager"))
+        Depends(require_roles(*MANAGEMENT_ROLES))
     ],
 )
 def edit_shelf(
@@ -73,7 +78,7 @@ def edit_shelf(
 @router.delete(
     "/shelves/{shelf_id}",
     dependencies=[
-        Depends(require_roles("SuperAdmin"))
+        Depends(require_roles(*MANAGEMENT_ROLES))
     ],
 )
 def remove_shelf(

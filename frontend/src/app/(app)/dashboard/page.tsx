@@ -7,6 +7,8 @@ import {
   getShelves,
   getAnalyticsSummary,
   getAnalytics,
+  regionLabel,
+  zoneLabel,
   type AnalyticsSession,
   type AnalyticsSummary,
 } from "@/lib/api";
@@ -14,6 +16,7 @@ import PageHeader from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
 import { Card } from "@/components/ui/Card";
 import { RoleBadge } from "@/components/RoleBadge";
+import { can, roleLabel } from "@/lib/permissions";
 import { OverviewItem } from "@/components/OverviewItem";
 import { DisplayAttentionChart } from "@/components/DisplayAttentionChart";
 import { BehaviorSegments } from "@/components/BehaviorSegments";
@@ -170,7 +173,10 @@ export default function DashboardPage() {
         </h2>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <OverviewItem label="Current Role" value={role || "—"} />
+          <OverviewItem
+            label="Current Role"
+            value={role ? roleLabel(role) : "—"}
+          />
 
           <OverviewItem
             label="Total Stores"
@@ -224,13 +230,13 @@ export default function DashboardPage() {
             />
 
             <StatCard
-              label="Left Display Views"
+              label="Shelf A Views"
               value={analytics.left_display_views}
               icon={PanelLeft}
             />
 
             <StatCard
-              label="Right Display Views"
+              label="Shelf B Views"
               value={analytics.right_display_views}
               icon={PanelRight}
             />
@@ -238,8 +244,8 @@ export default function DashboardPage() {
 
           <div className="mt-6">
             <DisplayAttentionChart
-              leftDisplayViews={analytics.left_display_views}
-              rightDisplayViews={analytics.right_display_views}
+              shelfAViews={analytics.left_display_views}
+              shelfBViews={analytics.right_display_views}
             />
           </div>
 
@@ -277,8 +283,12 @@ export default function DashboardPage() {
                         <td className="py-2 pr-4">
                           {session.dwell_time.toFixed(2)} sec
                         </td>
-                        <td className="py-2 pr-4">{session.region}</td>
-                        <td className="py-2 pr-4">{session.focus}</td>
+                        <td className="py-2 pr-4">
+                          {regionLabel(session.region)}
+                        </td>
+                        <td className="py-2 pr-4">
+                          {zoneLabel(session.focus)}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -290,47 +300,55 @@ export default function DashboardPage() {
       )}
 
       <div className="mt-6 grid gap-5 sm:grid-cols-2">
-        <Link href="/stores">
-          <Card className="group flex items-center justify-between p-6 hover:-translate-y-0.5 hover:shadow-md">
-            <div className="flex items-center gap-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
-                <Store className="h-5 w-5" />
+        {can(role, "viewStores") && (
+          <Link href="/stores">
+            <Card className="group flex items-center justify-between p-6 hover:-translate-y-0.5 hover:shadow-md">
+              <div className="flex items-center gap-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+                  <Store className="h-5 w-5" />
+                </div>
+
+                <div>
+                  <p className="font-semibold text-slate-900">
+                    {can(role, "manageStores")
+                      ? "Manage Stores"
+                      : "View Stores"}
+                  </p>
+                  <p className="text-sm text-slate-500">
+                    {can(role, "manageStores")
+                      ? "View, add and edit store locations"
+                      : "Browse store locations"}
+                  </p>
+                </div>
               </div>
 
-              <div>
-                <p className="font-semibold text-slate-900">
-                  Manage Stores
-                </p>
-                <p className="text-sm text-slate-500">
-                  View, add and edit store locations
-                </p>
+              <ArrowRight className="h-4 w-4 text-slate-400 transition-transform duration-200 group-hover:translate-x-1" />
+            </Card>
+          </Link>
+        )}
+
+        {can(role, "viewShelves") && (
+          <Link href="/shelves">
+            <Card className="group flex items-center justify-between p-6 hover:-translate-y-0.5 hover:shadow-md">
+              <div className="flex items-center gap-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+                  <LayoutGrid className="h-5 w-5" />
+                </div>
+
+                <div>
+                  <p className="font-semibold text-slate-900">
+                    Manage Shelves
+                  </p>
+                  <p className="text-sm text-slate-500">
+                    Configure shelf zones per store
+                  </p>
+                </div>
               </div>
-            </div>
 
-            <ArrowRight className="h-4 w-4 text-slate-400 transition-transform duration-200 group-hover:translate-x-1" />
-          </Card>
-        </Link>
-
-        <Link href="/shelves">
-          <Card className="group flex items-center justify-between p-6 hover:-translate-y-0.5 hover:shadow-md">
-            <div className="flex items-center gap-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
-                <LayoutGrid className="h-5 w-5" />
-              </div>
-
-              <div>
-                <p className="font-semibold text-slate-900">
-                  Manage Shelves
-                </p>
-                <p className="text-sm text-slate-500">
-                  Configure shelf zones per store
-                </p>
-              </div>
-            </div>
-
-            <ArrowRight className="h-4 w-4 text-slate-400 transition-transform duration-200 group-hover:translate-x-1" />
-          </Card>
-        </Link>
+              <ArrowRight className="h-4 w-4 text-slate-400 transition-transform duration-200 group-hover:translate-x-1" />
+            </Card>
+          </Link>
+        )}
       </div>
     </>
   );

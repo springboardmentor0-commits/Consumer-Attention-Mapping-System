@@ -3,14 +3,24 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { LayoutDashboard, Store, LayoutGrid, LogOut, Radar } from "lucide-react";
+import {
+  LayoutDashboard,
+  Store,
+  LayoutGrid,
+  LogOut,
+  Radar,
+  type LucideIcon,
+} from "lucide-react";
 import { RoleBadge } from "@/components/RoleBadge";
+import { NAV_ITEMS, can } from "@/lib/permissions";
 
-const NAV_LINKS = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/stores", label: "Stores", icon: Store },
-  { href: "/shelves", label: "Shelves", icon: LayoutGrid },
-];
+// Presentation only — which items exist and who may see them comes from
+// NAV_ITEMS in lib/permissions.ts.
+const NAV_ICONS: Record<string, LucideIcon> = {
+  "/dashboard": LayoutDashboard,
+  "/stores": Store,
+  "/shelves": LayoutGrid,
+};
 
 export default function Navbar() {
   const router = useRouter();
@@ -45,9 +55,9 @@ export default function Navbar() {
         </Link>
 
         <nav className="flex items-center gap-1 rounded-xl bg-slate-100/70 p-1">
-          {NAV_LINKS.map((link) => {
+          {NAV_ITEMS.filter((link) => can(role, link.capability)).map((link) => {
             const isActive = pathname === link.href;
-            const Icon = link.icon;
+            const Icon = NAV_ICONS[link.href];
 
             return (
               <Link

@@ -5,7 +5,7 @@ import psutil
 
 from app.services.vision.tracker import PersonTracker
 from app.services.vision.dwell import DwellTimeTracker
-from app.services.vision.shelf_mapper import ShelfMapper
+from app.services.vision.shelf_mapper import ShelfMapper, zone_label
 from app.services.vision.gaze import GazeEstimator
 from app.services.vision.attention import AttentionEngine
 from datetime import datetime
@@ -160,12 +160,14 @@ def start_video_stream(source):
                 # ----------------------------------------
                 label = f"ID {person_id}"
 
-                if shelf:
-                    label += f"\nRegion : {shelf}"
+                # `shelf` stays the stored value; only the drawn text is
+                # relabelled. A None shelf is the centre band, shown as the
+                # walking aisle.
+                label += f"\nRegion : {zone_label(shelf)}"
 
                 if gaze["face_found"]:
                     label += f"\nLooking : {gaze['direction']}"
-                    label += f"\nFocus : {attention}"
+                    label += f"\nFocus : {zone_label(attention)}"
 
                 # label += f"\nConf : {confidence:.2f}"
                                 
@@ -278,7 +280,7 @@ def start_video_stream(source):
 
             cv2.putText(
                 frame,
-                shelf_name,
+                zone_label(shelf_name),
                 (x1 + 10, 30),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.8,

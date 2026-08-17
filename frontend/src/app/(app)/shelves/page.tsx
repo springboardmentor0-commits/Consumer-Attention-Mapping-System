@@ -13,6 +13,8 @@ import { Card } from "@/components/ui/Card";
 import { SearchInput } from "@/components/SearchInput";
 import { Pagination } from "@/components/Pagination";
 import { TableState } from "@/components/TableState";
+import { AccessDenied } from "@/components/AccessDenied";
+import { can } from "@/lib/permissions";
 import {
   Pencil,
   Trash2,
@@ -45,14 +47,15 @@ export default function ShelvesPage() {
   const [zoneCoordinates, setZoneCoordinates] = useState("");
 
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [role, setRole] = useState("");
+  // null until the stored role has been read, so the guard below never flashes
+  // Access Denied at a user who is actually permitted.
+  const [role, setRole] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [loadingShelves, setLoadingShelves] = useState(true);
 
   async function loadStores() {
     const token = localStorage.getItem("token");
-    setRole(localStorage.getItem("role") || "");
 
     if (!token) {
       window.location.href = "/login";
@@ -86,8 +89,20 @@ export default function ShelvesPage() {
   }
 
   useEffect(() => {
-    loadStores();
+    setRole(localStorage.getItem("role") || "");
   }, []);
+
+  useEffect(() => {
+    if (role === null) return;
+
+    // Don't call the shelf endpoints at all for a role the API would reject.
+    if (!can(role, "viewShelves")) {
+      setLoadingShelves(false);
+      return;
+    }
+
+    loadStores();
+  }, [role]);
 
   const filteredShelves = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -162,6 +177,16 @@ export default function ShelvesPage() {
 
   const selectedStoreName = stores.find((s) => s.id === storeId)?.name;
 
+  if (role === null) {
+    return null;
+  }
+
+  if (!can(role, "viewShelves")) {
+    return <AccessDenied role={role} />;
+  }
+
+  const canManage = can(role, "manageShelves");
+
   return (
     <>
       <PageHeader
@@ -191,11 +216,11 @@ export default function ShelvesPage() {
         </div>
 
         <p className="mt-2 text-xs text-slate-400">
-          Select a store to view its shelves. Available to all roles.
+          Select a store to view its shelves.
         </p>
       </Card>
 
-      {role !== "Analyst" && (
+      {canManage && (
         <Card className="mb-6 p-6">
           <h2 className="mb-5 text-base font-semibold text-slate-900">
             {editingId === null
@@ -310,7 +335,7 @@ export default function ShelvesPage() {
 
                   <td className="px-6 py-4">
                     <div className="flex justify-center gap-2">
-                      {role !== "Analyst" && (
+                      {canManage && (
                         <button
                           onClick={() => handleEdit(shelf)}
                           className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition-colors duration-200 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40"
@@ -320,7 +345,7 @@ export default function ShelvesPage() {
                         </button>
                       )}
 
-                      {role === "SuperAdmin" && (
+                      {canManage && (
                         <button
                           onClick={() => handleDelete(shelf.id)}
                           className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition-colors duration-200 hover:border-red-200 hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/30"
