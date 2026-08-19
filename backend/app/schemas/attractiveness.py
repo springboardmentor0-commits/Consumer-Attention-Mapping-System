@@ -41,6 +41,14 @@ class AttractivenessRequest(BaseModel):
         le=100
     )
 
+    # Which store's analytics to score against. Optional so existing clients
+    # keep working; without it the score is computed from every store's
+    # sessions pooled together, which is rarely what you want.
+    store_id: int | None = None
+
+    # Narrow further to one shelf record when the caller knows it.
+    shelf_id: int | None = None
+
     # Shelf zone the product sits in, using the values the vision pipeline
     # stores ("Left Display" / "Right Display"). None scores the product
     # against every recorded session in the store.
@@ -60,6 +68,8 @@ class AttractivenessResponse(BaseModel):
     metric_sources: dict[str, str] | None = None
 
     zone: str | None = None
+
+    store_id: int | None = None
 
     analytics_sessions: int | None = None
 

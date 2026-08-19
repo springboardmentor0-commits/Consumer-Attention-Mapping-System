@@ -66,6 +66,12 @@ export const PERMISSIONS = {
   viewRecommendations: ALL_ROLES,
   viewReports: ALL_ROLES,
 
+  // Notifications are readable by everyone, but read state is shared rather
+  // than per-user, so clearing all of them is a write against what other
+  // users see and stays with the operational roles.
+  viewNotifications: ALL_ROLES,
+  markAllNotificationsRead: MANAGEMENT_ROLES,
+
   // No UI exists for these yet; declared so they are gated from the start.
   cameraControls: MANAGEMENT_ROLES,
   manageUsers: ADMIN_ONLY,

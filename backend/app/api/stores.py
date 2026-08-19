@@ -85,4 +85,21 @@ def remove_store(
             detail="Store not found",
         )
 
+    if deleted.get("blocked"):
+        counts = deleted["dependents"]
+
+        detail = ", ".join(
+            f"{count} {name}"
+            for name, count in counts.items()
+            if count
+        )
+
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                f"Cannot delete this store while it still has {detail}. "
+                "Remove or reassign them first."
+            ),
+        )
+
     return deleted

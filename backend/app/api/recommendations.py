@@ -41,7 +41,12 @@ def get_recommendation(data: dict, db: Session = Depends(get_db)):
     if score is None:
         # No score supplied, so resolve it exactly the way /attractiveness/score
         # does rather than duplicating the calculation here.
-        engagement = get_engagement_metrics(db, zone=shelf_zone)
+        engagement = get_engagement_metrics(
+            db,
+            zone=shelf_zone,
+            store_id=data.get("store_id"),
+            shelf_id=data.get("shelf_id"),
+        )
 
         metrics, _ = resolve_scoring_inputs(
             engagement=engagement,

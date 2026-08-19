@@ -53,6 +53,7 @@ export default function ShelvesPage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [loadingShelves, setLoadingShelves] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
   async function loadStores() {
     const token = localStorage.getItem("token");
@@ -62,13 +63,20 @@ export default function ShelvesPage() {
       return;
     }
 
-    const data = await getStores(token);
-    setStores(data);
+    try {
+      const data = await getStores(token);
+      setStores(data);
 
-    if (data.length > 0) {
-      setStoreId(data[0].id);
-      loadShelves(data[0].id);
-    } else {
+      if (data.length > 0) {
+        setStoreId(data[0].id);
+        loadShelves(data[0].id);
+      } else {
+        setLoadingShelves(false);
+      }
+    } catch (error) {
+      console.error(error);
+      setStores([]);
+      setLoadError("Could not load stores.");
       setLoadingShelves(false);
     }
   }
@@ -80,9 +88,17 @@ export default function ShelvesPage() {
 
     setLoadingShelves(true);
 
+    setLoadError("");
+
     try {
       const data = await getShelves(id, token);
       setShelves(data);
+    } catch (error) {
+      // Keep the list a list. Storing an error body here used to crash the
+      // page rather than showing that the request failed.
+      console.error(error);
+      setShelves([]);
+      setLoadError("Could not load shelves for this store.");
     } finally {
       setLoadingShelves(false);
     }
@@ -260,6 +276,12 @@ export default function ShelvesPage() {
             </button>
           </form>
         </Card>
+      )}
+
+      {loadError && (
+        <p className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {loadError}
+        </p>
       )}
 
       <div className="mb-4 flex items-center justify-between gap-4">

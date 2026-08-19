@@ -35,6 +35,7 @@ export default function StoresPage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [deleteError, setDeleteError] = useState("");
 
   async function loadStores() {
     const token = localStorage.getItem("token");
@@ -49,6 +50,10 @@ export default function StoresPage() {
     try {
       const data = await getStores(token);
       setStores(data);
+    } catch (error) {
+      console.error(error);
+      setStores([]);
+      setDeleteError("Could not load stores.");
     } finally {
       setLoading(false);
     }
@@ -129,8 +134,17 @@ export default function StoresPage() {
 
     if (!confirm("Delete this store?")) return;
 
-    await deleteStore(id, token);
-    await loadStores();
+    setDeleteError("");
+
+    try {
+      await deleteStore(id, token);
+      await loadStores();
+    } catch (error) {
+      console.error(error);
+      setDeleteError(
+        error instanceof Error ? error.message : "Could not delete store."
+      );
+    }
   }
 
   if (role === null) {
@@ -187,6 +201,12 @@ export default function StoresPage() {
             </button>
           </form>
         </Card>
+      )}
+
+      {deleteError && (
+        <p className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {deleteError}
+        </p>
       )}
 
       <div className="mb-4 flex items-center justify-between gap-4">

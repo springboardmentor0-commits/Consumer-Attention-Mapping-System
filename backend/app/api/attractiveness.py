@@ -43,7 +43,12 @@ def calculate_product_score(
     longer influence the score.
     """
 
-    engagement = get_engagement_metrics(db, zone=data.zone)
+    engagement = get_engagement_metrics(
+        db,
+        zone=data.zone,
+        store_id=data.store_id,
+        shelf_id=data.shelf_id,
+    )
 
     metrics, sources = resolve_scoring_inputs(
         engagement=engagement,
@@ -58,6 +63,7 @@ def calculate_product_score(
         "metrics_used": metrics,
         "metric_sources": sources,
         "zone": data.zone,
+        "store_id": data.store_id,
         "analytics_sessions": (
             engagement["session_count"] if engagement else 0
         ),

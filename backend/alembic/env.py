@@ -18,13 +18,31 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
+from app.core.config import DATABASE_URL
 from app.core.database import Base
-from app.models.role import Role
-from app.models.user import User
-from app.models.store import Store
-from app.models.shelf import Shelf
+
+# Every model must be imported here or its table is missing from
+# Base.metadata, and autogenerate would then propose dropping it. Analytics
+# was absent, which is why the original baseline never described it.
+from app.models.role import Role  # noqa: F401
+from app.models.user import User  # noqa: F401
+from app.models.store import Store  # noqa: F401
+from app.models.shelf import Shelf  # noqa: F401
+from app.models.analytics import Analytics  # noqa: F401
+from app.models.notification import Notification  # noqa: F401
 
 target_metadata = Base.metadata
+
+# Reuse the application's own connection string rather than duplicating it in
+# alembic.ini. app.core.config loads it from .env via python-dotenv, so
+# migrations and the running app can never point at different databases.
+if not DATABASE_URL:
+    raise RuntimeError(
+        "DATABASE_URL is not set. Alembic reads it from the environment "
+        "(backend/.env), the same way the application does."
+    )
+
+config.set_main_option("sqlalchemy.url", DATABASE_URL)
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

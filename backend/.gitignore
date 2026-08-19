@@ -17,3 +17,6 @@ __pycache__/
 # OS Files
 .DS_Store
 Thumbs.db
+
+# Uploaded and staged videos (never committed)
+app/static/videos/

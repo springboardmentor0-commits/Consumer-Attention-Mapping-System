@@ -1,17 +1,20 @@
 "use client";
 
-import { Card } from "@/components/ui/Card";
+import { Users } from "lucide-react";
+import { Card, CardHeader } from "@/components/ui/Card";
+import { AccentIcon } from "@/components/ui/AccentIcon";
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import { tone, type Tone } from "@/lib/tone";
 import type { AnalyticsSession } from "@/lib/api";
 
 // Labels written by the backend K-Means segmentation
-// (app/services/behavior/segmentation.py). Raw session-level metrics stay in
-// the analytics table for journey analytics and detailed reports; this panel
-// only shows the distribution.
-const SEGMENTS = [
-  { label: "Explorer", color: "bg-emerald-500" },
-  { label: "Quick Buyer", color: "bg-sky-500" },
-  { label: "Comparison Shopper", color: "bg-amber-500" },
-] as const;
+// (app/services/behavior/segmentation.py). Each is given a semantic tone
+// rather than a raw colour so the palette stays in one place.
+const SEGMENTS: { label: string; variant: Tone }[] = [
+  { label: "Explorer", variant: "behavior" },
+  { label: "Quick Buyer", variant: "analytics" },
+  { label: "Comparison Shopper", variant: "warning" },
+];
 
 export function BehaviorSegments({
   sessions,
@@ -38,43 +41,48 @@ export function BehaviorSegments({
   });
 
   return (
-    <Card className="mt-6 p-6">
-      <div className="mb-5">
-        <h2 className="text-base font-semibold text-slate-900">
-          Shopper Behavioral Segments
-        </h2>
-
-        <p className="mt-1 text-sm text-slate-500">
-          K-Means behavioral classification from completed shopper sessions.
-        </p>
-      </div>
+    <Card className="mt-6 animate-fade-in p-6">
+      <CardHeader
+        icon={<AccentIcon icon={Users} variant="behavior" />}
+        title="Shopper Behavioral Segments"
+        description="K-Means behavioral classification from completed shopper sessions."
+        action={
+          <StatusBadge variant={segmented.length > 0 ? "behavior" : "neutral"}>
+            {segmented.length} segmented
+          </StatusBadge>
+        }
+      />
 
       {segmented.length === 0 ? (
-        <p className="text-sm text-slate-500">
-          No behavioral data available yet.
-        </p>
+        <div className="flex h-32 items-center justify-center rounded-xl border border-dashed border-line bg-surface-sunken/50">
+          <p className="text-sm text-ink-muted">
+            No behavioral data available yet.
+          </p>
+        </div>
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-3">
             {distribution.map((segment) => (
               <div
                 key={segment.label}
-                className="rounded-xl border border-slate-200 p-5"
+                className="rounded-xl border border-line p-5 transition-colors duration-200 hover:border-line-strong"
               >
                 <div className="flex items-center gap-2">
                   <span
                     aria-hidden="true"
-                    className={`h-2 w-2 shrink-0 rounded-full ${segment.color}`}
+                    className={`h-2 w-2 shrink-0 rounded-full ${tone(segment.variant).bar}`}
                   />
 
-                  <p className="text-sm text-slate-500">{segment.label}</p>
+                  <p className="truncate text-sm text-ink-muted">
+                    {segment.label}
+                  </p>
                 </div>
 
-                <p className="mt-2 text-3xl font-semibold text-slate-900">
+                <p className="mt-2 text-3xl font-semibold tracking-tight text-ink tabular-nums">
                   {segment.count}
                 </p>
 
-                <p className="mt-1 text-xs text-slate-400">
+                <p className="mt-1 text-xs text-ink-subtle">
                   shoppers · {segment.share}% of segmented sessions
                 </p>
               </div>
@@ -82,12 +90,12 @@ export function BehaviorSegments({
           </div>
 
           <div className="mt-6">
-            <div className="flex h-2.5 overflow-hidden rounded-full bg-slate-100">
+            <div className="flex h-2.5 overflow-hidden rounded-full bg-surface-sunken">
               {distribution.map((segment) =>
                 segment.count === 0 ? null : (
                   <div
                     key={segment.label}
-                    className={segment.color}
+                    className={`${tone(segment.variant).bar} transition-[width] duration-500 ease-out`}
                     style={{ width: `${segment.width}%` }}
                     title={`${segment.label}: ${segment.count} (${segment.share}%)`}
                   />
@@ -95,7 +103,7 @@ export function BehaviorSegments({
               )}
             </div>
 
-            <p className="mt-3 text-xs text-slate-400">
+            <p className="mt-3 text-xs text-ink-subtle">
               Segment distribution across {segmented.length} segmented
               {segmented.length === 1 ? " session" : " sessions"}.
             </p>

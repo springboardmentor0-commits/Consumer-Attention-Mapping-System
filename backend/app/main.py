@@ -13,6 +13,10 @@ from app.models.analytics import Analytics
 from app.api import heatmaps
 from app.api import attractiveness
 from app.api import recommendations
+from app.api import camera
+from app.api import reports
+from app.api import notifications
+from app.api import users
 
 from app.models.role import Role
 from app.models.user import User
@@ -46,6 +50,10 @@ app.include_router(analytics_router)
 app.include_router(heatmaps.router)
 app.include_router(attractiveness.router)
 app.include_router(recommendations.router)
+app.include_router(camera.router)
+app.include_router(reports.router)
+app.include_router(notifications.router)
+app.include_router(users.router)
 
 db = SessionLocal()                 #open db session sesh and insert default roles if u want and close db sesh
 seed_roles(db)

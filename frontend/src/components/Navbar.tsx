@@ -12,6 +12,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { RoleBadge } from "@/components/RoleBadge";
+import { NotificationBell } from "@/components/NotificationBell";
 import { NAV_ITEMS, can } from "@/lib/permissions";
 
 // Presentation only — which items exist and who may see them comes from
@@ -26,9 +27,11 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const [role, setRole] = useState("");
+  const [token, setToken] = useState("");
 
   useEffect(() => {
     setRole(localStorage.getItem("role") || "");
+    setToken(localStorage.getItem("token") || "");
   }, []);
 
   function logout() {
@@ -77,6 +80,8 @@ export default function Navbar() {
         </nav>
 
         <div className="flex items-center gap-3">
+          {token && <NotificationBell token={token} role={role} />}
+
           <RoleBadge role={role} />
 
           <button

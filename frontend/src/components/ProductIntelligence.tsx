@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AttractivenessGrid } from "@/components/AttractivenessGrid";
 import { RecommendationsPanel } from "@/components/RecommendationsPanel";
 import {
@@ -12,7 +12,29 @@ import {
   type RecommendationResponse,
 } from "@/lib/api";
 
-export function ProductIntelligence({ token }: { token: string }) {
+/** Copy overrides so a role dashboard can reframe the same data. */
+export type ProductIntelligenceFraming = {
+  scoreTitle?: string;
+  scoreDescription?: string;
+  adviceTitle?: string;
+  adviceDescription?: string;
+  categories?: Record<string, string>;
+};
+
+export function ProductIntelligence({
+  token,
+  storeId = null,
+  framing = {},
+  showScores = true,
+  showRecommendations = true,
+}: {
+  token: string;
+  /** Scopes scores to one store. Null pools every store's analytics. */
+  storeId?: number | null;
+  framing?: ProductIntelligenceFraming;
+  showScores?: boolean;
+  showRecommendations?: boolean;
+}) {
   const [scores, setScores] = useState<AttractivenessResponse[]>([]);
   const [recommendations, setRecommendations] = useState<
     RecommendationResponse[]
@@ -39,7 +61,7 @@ export function ProductIntelligence({ token }: { token: string }) {
         const scored = await Promise.all(
           SHELF_ZONES.map((zone) =>
             calculateAttractiveness(
-              { product_name: zoneLabel(zone), zone },
+              { product_name: zoneLabel(zone), zone, store_id: storeId },
               token
             )
           )
@@ -51,7 +73,8 @@ export function ProductIntelligence({ token }: { token: string }) {
               entry.product_name,
               entry.zone ?? null,
               entry.attractiveness_score,
-              token
+              token,
+              { storeId }
             )
           )
         );
@@ -78,17 +101,43 @@ export function ProductIntelligence({ token }: { token: string }) {
     return () => {
       cancelled = true;
     };
-  }, [token]);
+  }, [token, storeId]);
+
+  // The recommendation response carries no timestamp of its own. Both panels
+  // are built from the same scoring call, so the shelf's analytics timestamp
+  // is reused here rather than requesting anything extra.
+  const updatedAt = useMemo(() => {
+    const byShelf: Record<string, string | null | undefined> = {};
+
+    scores.forEach((entry) => {
+      const label = entry.zone ? zoneLabel(entry.zone) : entry.product_name;
+      byShelf[label] = entry.analytics_updated_at;
+    });
+
+    return byShelf;
+  }, [scores]);
 
   return (
     <>
-      <AttractivenessGrid
-        products={scores}
-        loading={loading}
-        error={error}
-      />
+      {showScores && (
+        <AttractivenessGrid
+          products={scores}
+          loading={loading}
+          error={error}
+          title={framing.scoreTitle}
+          description={framing.scoreDescription}
+        />
+      )}
 
-      <RecommendationsPanel results={recommendations} />
+      {showRecommendations && (
+        <RecommendationsPanel
+          results={recommendations}
+          title={framing.adviceTitle}
+          description={framing.adviceDescription}
+          categories={framing.categories}
+          updatedAt={updatedAt}
+        />
+      )}
     </>
   );
 }

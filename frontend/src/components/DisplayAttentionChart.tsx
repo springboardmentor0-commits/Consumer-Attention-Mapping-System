@@ -4,12 +4,23 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
-import { Card } from "@/components/ui/Card";
+import { BarChart3 } from "lucide-react";
+import { Card, CardHeader } from "@/components/ui/Card";
+import { AccentIcon } from "@/components/ui/AccentIcon";
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import {
+  CHART_COLORS,
+  CHART_INK,
+  axisTick,
+  tooltipCursor,
+  tooltipStyle,
+} from "@/lib/chartTheme";
 
 export function DisplayAttentionChart({
   shelfAViews,
@@ -19,45 +30,87 @@ export function DisplayAttentionChart({
   shelfBViews: number;
 }) {
   const data = [
-    { name: "Shelf A", views: shelfAViews },
-    { name: "Shelf B", views: shelfBViews },
+    { name: "Shelf A", views: shelfAViews, fill: CHART_COLORS.analytics },
+    { name: "Shelf B", views: shelfBViews, fill: CHART_COLORS.behavior },
   ];
 
-  return (
-    <Card className="p-6">
-      <h2 className="mb-5 text-base font-semibold text-slate-900">
-        Shelf Attention
-      </h2>
+  const total = shelfAViews + shelfBViews;
 
-      <div className="h-72">
+  return (
+    <Card className="animate-fade-in p-6">
+      <CardHeader
+        icon={<AccentIcon icon={BarChart3} variant="analytics" />}
+        title="Shelf Attention"
+        description="Recorded gaze events per shelf zone."
+        action={
+          <StatusBadge variant={total > 0 ? "analytics" : "neutral"}>
+            {total} {total === 1 ? "view" : "views"}
+          </StatusBadge>
+        }
+      />
+
+      {/* Legend sits above the plot so the series colours are readable even
+          when a bar is zero-height. */}
+      <div className="mb-4 flex flex-wrap items-center gap-4">
+        {data.map((series) => (
+          <span
+            key={series.name}
+            className="inline-flex items-center gap-2 text-xs font-medium text-ink-muted"
+          >
+            <span
+              aria-hidden="true"
+              className="h-2 w-2 rounded-full"
+              style={{ background: series.fill }}
+            />
+            {series.name}
+          </span>
+        ))}
+      </div>
+
+      <div className="h-64 sm:h-72">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+          <BarChart
+            data={data}
+            margin={{ top: 4, right: 8, bottom: 0, left: 0 }}
+          >
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke={CHART_INK.grid}
+              vertical={false}
+            />
+
             <XAxis
               dataKey="name"
-              tick={{ fill: "#64748b", fontSize: 12 }}
-              axisLine={{ stroke: "#e2e8f0" }}
+              tick={axisTick}
+              tickLine={false}
+              axisLine={{ stroke: CHART_INK.axis }}
             />
+
             <YAxis
-              tick={{ fill: "#64748b", fontSize: 12 }}
-              axisLine={{ stroke: "#e2e8f0" }}
-              label={{
-                value: "View Count",
-                angle: -90,
-                position: "insideLeft",
-                fill: "#64748b",
-                fontSize: 12,
-              }}
+              tick={axisTick}
+              tickLine={false}
+              axisLine={false}
+              width={44}
               allowDecimals={false}
             />
+
             <Tooltip
-              contentStyle={{
-                borderRadius: 12,
-                borderColor: "#e2e8f0",
-                fontSize: 12,
-              }}
+              cursor={tooltipCursor}
+              contentStyle={tooltipStyle}
             />
-            <Bar dataKey="views" fill="#10b981" radius={[6, 6, 0, 0]} />
+
+            <Bar
+              dataKey="views"
+              name="Views"
+              fill={CHART_COLORS.analytics}
+              radius={[8, 8, 0, 0]}
+              maxBarSize={96}
+              isAnimationActive={false}
+            >
+              {data.map((series) => (
+                <Cell key={series.name} fill={series.fill} />
+              ))}
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>

@@ -7,9 +7,9 @@ pwd_context = CryptContext(
 
 
 def hash_password(password: str):
-    print("Password:", password)
-    print("Type:", type(password))
-    print("Length:", len(password))
+    # Debug prints removed: they wrote the plaintext password, its type and its
+    # length to stdout on every registration, leaking credentials into server
+    # logs. Hashing behaviour is unchanged.
     return pwd_context.hash(password)
 
 

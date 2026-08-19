@@ -13,17 +13,27 @@ FEATURE_COLUMNS = [
 ]
 
 
-def run_segmentation(db: Session):
+def run_segmentation(db: Session, store_id: int | None = None):
+    """
+    store_id restricts clustering to one store's sessions. Shopper behaviour
+    is only comparable within a store — clustering across stores mixes
+    different layouts and traffic patterns into the same centroids. Passing
+    None keeps the previous whole-table behaviour.
+
+    Only the selection of input rows changes here; the K-Means configuration
+    and cluster-labelling logic below are untouched.
+    """
 
     # --------------------------------------------------
     # 1. Get completed shopper sessions
     # --------------------------------------------------
 
-    sessions = (
-        db.query(Analytics)
-        .filter(Analytics.dwell_time > 0)
-        .all()
-    )
+    query = db.query(Analytics).filter(Analytics.dwell_time > 0)
+
+    if store_id is not None:
+        query = query.filter(Analytics.store_id == store_id)
+
+    sessions = query.all()
 
     if len(sessions) < 3:
         print("Not enough shopper sessions for K-Means.")
