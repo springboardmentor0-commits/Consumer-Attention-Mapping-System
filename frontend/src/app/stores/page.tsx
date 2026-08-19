@@ -42,10 +42,15 @@ export default function StoresPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [search, setSearch] = useState("");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) router.replace(ROUTES.AUTH);
-  }, [authLoading, isAuthenticated, router]);
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mounted && !authLoading && !isAuthenticated) router.replace(ROUTES.AUTH);
+  }, [mounted, authLoading, isAuthenticated, router]);
 
   const fetchStores = async () => {
     try {
@@ -94,7 +99,7 @@ export default function StoresPage() {
     s.city?.toLowerCase().includes(search.toLowerCase())
   );
 
-  if (authLoading || !isAuthenticated) {
+  if (!mounted || authLoading || !isAuthenticated) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#020817" }}>
         <LoadingSpinner size="lg" />

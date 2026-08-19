@@ -22,7 +22,9 @@ export const ROUTES = {
   CAMERAS: "/cameras",
   USERS: "/admin",
   ANALYTICS: "/analytics",
+  BEHAVIOR: "/behavior",
   HEATMAPS: "/heatmaps",
+  RECOMMENDATIONS: "/recommendations",
   REPORTS: "/reports",
   SETTINGS: "/settings",
 };

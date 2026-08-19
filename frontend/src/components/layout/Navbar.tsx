@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "../../utils/constants";
@@ -16,6 +16,11 @@ export function Navbar() {
   const { user, logout } = useAuth();
   const router = useRouter();
   const [loggingOut, setLoggingOut] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleLogout = async () => {
     setLoggingOut(true);
@@ -63,7 +68,7 @@ export function Navbar() {
       </div>
 
       {/* Right side */}
-      {user && (
+      {mounted && user && (
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           {/* User info */}
           <div style={{ textAlign: "right" }}>

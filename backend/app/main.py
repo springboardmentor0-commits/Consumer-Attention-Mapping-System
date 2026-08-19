@@ -70,6 +70,13 @@ app.add_middleware(
 app.add_middleware(AuthMiddleware)
 app.add_middleware(LoggingMiddleware)
 
+import os
+from fastapi.staticfiles import StaticFiles
+
+# Ensure static directories exist
+os.makedirs("static/heatmaps", exist_ok=True)
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 # Register routers
 app.include_router(api_router, prefix="/api")
 app.include_router(api_router, prefix="/api/v1")  # Alias for fallback compatibility

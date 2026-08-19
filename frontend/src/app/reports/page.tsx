@@ -55,10 +55,15 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState("today");
   const [stats, setStats] = useState<ReportStat[]>([]);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) router.replace(ROUTES.AUTH);
-  }, [authLoading, isAuthenticated, router]);
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mounted && !authLoading && !isAuthenticated) router.replace(ROUTES.AUTH);
+  }, [mounted, authLoading, isAuthenticated, router]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -122,7 +127,7 @@ export default function ReportsPage() {
     URL.revokeObjectURL(url);
   };
 
-  if (authLoading || !isAuthenticated) {
+  if (!mounted || authLoading || !isAuthenticated) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#020817" }}>
         <LoadingSpinner size="lg" />

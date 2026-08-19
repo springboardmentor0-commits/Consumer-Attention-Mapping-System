@@ -44,16 +44,21 @@ export default function AnalyticsPage() {
   const router = useRouter();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const [storeId, setStoreId] = useState("");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) router.replace(ROUTES.AUTH);
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mounted && !authLoading && !isAuthenticated) router.replace(ROUTES.AUTH);
     const sid = localStorage.getItem("selected_store_id") || "";
     setStoreId(sid);
-  }, [isAuthenticated, authLoading, router]);
+  }, [mounted, isAuthenticated, authLoading, router]);
 
   const { dashboardData, shelfRankings, zoneTraffic, hourlyTraffic, isLoading, error } = useAnalytics(storeId);
 
-  if (authLoading || !isAuthenticated) {
+  if (!mounted || authLoading || !isAuthenticated) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#020817" }}>
         <LoadingSpinner size="lg" />

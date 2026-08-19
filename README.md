@@ -284,6 +284,7 @@ alembic upgrade head
 ## Start Backend
 
 ```bash
+alembic upgrade head
 uvicorn app.main:app --reload
 ```
 
@@ -402,6 +403,7 @@ Open a third terminal and run:
 ```powershell
 cd backend
 python scripts/run_tracking.py --source 0
+
 ```
 *(The `--source 0` tells it to use your main webcam).*
 
@@ -420,6 +422,13 @@ python scripts/run_tracking.py --source "shop_video.mp4" ---no-display
 ```
 
 When the video window pops up, you can stop it at any time by pressing `q` on your keyboard.
+
+Analysis
+
+```powershell
+cd backend
+python scripts/run_behavior_analysis.py
+```
 
 ---
 

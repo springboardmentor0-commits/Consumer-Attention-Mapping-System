@@ -42,9 +42,14 @@ export default function DashboardPage() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const [tick, setTick] = useState(0);
   const [selectedStoreId, setSelectedStoreId] = useState('');
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) router.replace(ROUTES.AUTH);
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mounted && !isLoading && !isAuthenticated) router.replace(ROUTES.AUTH);
     const id = setInterval(() => setTick(t => t + 1), 3000);
     
     // Load store id from localStorage or fetch default
@@ -63,9 +68,9 @@ export default function DashboardPage() {
     }
     
     return () => clearInterval(id);
-  }, [isAuthenticated, isLoading, router]);
+  }, [mounted, isAuthenticated, isLoading, router]);
 
-  if (isLoading || !isAuthenticated || !user) {
+  if (!mounted || isLoading || !isAuthenticated || !user) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#020817" }}>
         <LoadingSpinner size="lg" />

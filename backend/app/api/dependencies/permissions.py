@@ -46,3 +46,16 @@ async def require_marketing_manager(
             detail="Forbidden: Requires Marketing Manager privileges."
         )
     return current_user
+
+def require_role(allowed_roles: list):
+    """Dependency factory requiring user to have one of the specified roles."""
+    async def role_checker(current_user: User = Depends(get_current_active_user)) -> User:
+        user_role_val = current_user.role.value if hasattr(current_user.role, "value") else str(current_user.role)
+        if user_role_val not in allowed_roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Forbidden: Access requires one of roles {allowed_roles}."
+            )
+        return current_user
+    return role_checker
+
