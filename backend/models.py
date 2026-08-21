@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import declarative_base
+from sqlalchemy import Column, Integer, Float, DateTime
 
 Base = declarative_base()
 
@@ -33,3 +34,72 @@ class Shelf(Base):
     id = Column(Integer, primary_key=True, index=True)
     store_id = Column(Integer, ForeignKey("stores.id"))
     zone_name = Column(String)
+
+
+class ConsumerTracking(Base):
+    __tablename__ = "consumer_tracking"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    tracker_id = Column(Integer)
+    store_id = Column(Integer)
+    shelf_id = Column(Integer)
+
+    entry_time = Column(DateTime)
+    exit_time = Column(DateTime)
+
+    dwell_time = Column(Float)
+
+    behavior_segment = Column(String, nullable=True)
+
+class Product(Base):
+    __tablename__ = "products"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    product_name = Column(
+        String,
+        nullable=False
+    )
+
+    shelf_id = Column(
+        Integer,
+        ForeignKey("shelves.id"),
+        nullable=False
+    )
+
+    store_id = Column(
+        Integer,
+        ForeignKey("stores.id"),
+        nullable=False
+    )
+
+class ProductInteraction(Base):
+    __tablename__ = "product_interactions"
+
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
+
+    product_id = Column(
+        Integer,
+        ForeignKey("products.id"),
+        nullable=False
+    )
+
+    tracker_id = Column(
+        Integer,
+        nullable=False
+    )
+
+    interaction_type = Column(
+        String,
+        nullable=False
+    )
+
+    interaction_time = Column(
+        DateTime,
+        nullable=False
+    )
